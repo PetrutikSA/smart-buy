@@ -13,6 +13,10 @@
 	<version>0.0.1-SNAPSHOT</version>
 	<name>smart-buy</name>
 	<description>Telegram bot to check prices in web markets everyday</description>
+	<modules>
+		<module>smart-buy-gateway</module>
+	</modules>
+	<packaging>pom</packaging>
 	<url/>
 	<licenses>
 		<license/>
