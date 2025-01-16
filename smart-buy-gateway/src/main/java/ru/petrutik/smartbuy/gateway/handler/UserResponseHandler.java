@@ -4,6 +4,6 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
 @Component
-@KafkaListener(topics = "${smartbuy.kafka.topic.name.user.response}")
+@KafkaListener(topics = "#{@kafkaConfig.getResponseTopicName()}")
 public class UserResponseHandler {
 }
