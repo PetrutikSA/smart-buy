@@ -19,7 +19,7 @@ import java.util.List;
 public class SmartBuyBot extends TelegramLongPollingBot {
     private final String botName;
 
-    public SmartBuyBot(@Value("${bot.name}") String botName, @Value("${bot.token}") String botToken) {
+    public SmartBuyBot(@Value("${smartbuy.bot.name}") String botName, @Value("${smartbuy.bot.token}") String botToken) {
         super(botToken);
         this.botName = botName;
         List<BotCommand> listOfCommands = new ArrayList<>();

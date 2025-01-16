@@ -1,3 +1,16 @@
-bot:
-  name: ${SMARTBYUBOT_NAME}
-  token: ${SMARTBYUBOT_TOKEN}
+smartbuy:
+  bot:
+    name: ${SMARTBYUBOT_NAME}
+    token: ${SMARTBYUBOT_TOKEN}
+  kafka:
+    topic:
+      name:
+        user:
+          request: user-request-topic
+          response: user-response-topic
+
+spring:
+  kafka:
+    consumer:
+      bootstrap: localhost:9092,localhost:9094
+      group-id: user-response-event
