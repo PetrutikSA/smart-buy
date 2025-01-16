@@ -66,13 +66,13 @@ public class KafkaConfig {
     }
 
     @Bean
-    public ConsumerFactory<String, Object> consumerFactory() {
+    public ConsumerFactory<Long, Object> consumerFactory() {
         return new DefaultKafkaConsumerFactory<>(consumerConfigs());
     }
 
     @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, Object> kafkaListenerContainerFactory(
-            ConsumerFactory<String, Object> consumerFactory, KafkaTemplate<String, Object> kafkaTemplate) {
+    public ConcurrentKafkaListenerContainerFactory<Long, Object> kafkaListenerContainerFactory(
+            ConsumerFactory<Long, Object> consumerFactory, KafkaTemplate<Long, Object> kafkaTemplate) {
         //Dead letter process
         DefaultErrorHandler errorHandler = new DefaultErrorHandler(new DeadLetterPublishingRecoverer(kafkaTemplate),
                 new FixedBackOff(3000, 9));
@@ -80,19 +80,19 @@ public class KafkaConfig {
         //errorHandler.addNotRetryableExceptions(NoneRetryableException.class, HttpServerErrorException.class);
         //errorHandler.addRetryableExceptions(RetryableException.class);
 
-        ConcurrentKafkaListenerContainerFactory<String, Object> factory = new ConcurrentKafkaListenerContainerFactory<>();
+        ConcurrentKafkaListenerContainerFactory<Long, Object> factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(consumerFactory);
         factory.setCommonErrorHandler(errorHandler);
         return factory;
     }
 
     @Bean
-    public KafkaTemplate<String, Object> kafkaTemplate() {
+    public KafkaTemplate<Long, Object> kafkaTemplate() {
         Map<String, Object> config = new HashMap<>();
         config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, environment.getProperty("spring.kafka.consumer.bootstrap"));
         config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, LongSerializer.class);
         config.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
-        ProducerFactory<String, Object> producerFactory = new DefaultKafkaProducerFactory<>(config);
+        ProducerFactory<Long, Object> producerFactory = new DefaultKafkaProducerFactory<>(config);
         return new KafkaTemplate<>(producerFactory);
     }
 }
