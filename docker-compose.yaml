@@ -1,0 +1,28 @@
+services:
+  smart-buy-request-service:
+    build: smart-buy-request-service
+    image: smart-buy-request-service
+    container_name: smart-buy-request-service
+    ports:
+      - "9090:9090"
+    depends_on:
+      - smart-buy-request-db
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://smart-buy-request-db:5432/${REQUEST_DB_NAME}
+      - SPRING_DATASOURCE_USERNAME=${REQUEST_DB_USERNAME}
+      - SPRING_DATASOURCE_PASSWORD=${REQUEST_DB_PASSWORD}
+
+  smart-buy-request-db:
+    image: postgres:16.1
+    container_name: smart-buy-request-db
+    ports:
+      - "6541:5432"
+    environment:
+      - POSTGRES_PASSWORD=${REQUEST_DB_PASSWORD}
+      - POSTGRES_USER=${REQUEST_DB_USERNAME}
+      - POSTGRES_DB=${REQUEST_DB_NAME}
+    healthcheck:
+      test: pg_isready -q -d $$POSTGRES_DB -U $$POSTGRES_USER
+      timeout: 5s
+      interval: 5s
+      retries: 10
