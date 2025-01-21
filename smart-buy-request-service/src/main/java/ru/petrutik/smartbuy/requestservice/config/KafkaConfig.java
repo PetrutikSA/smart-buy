@@ -1,4 +1,4 @@
-package ru.petrutik.smartbuy.gateway.config;
+package ru.petrutik.smartbuy.requestservice.config;
 
 import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
@@ -47,13 +47,12 @@ public class KafkaConfig {
 
     @Bean
     public NewTopic createTopic() {
-        return TopicBuilder.name(requestTopicName)
+        return TopicBuilder.name(responseTopicName)
                 .partitions(3)
                 .replicas(3)
                 .configs(Map.of("min.insync.replicas", "2"))
                 .build();
     }
-
     private Map<String, Object> consumerConfigs() {
         Map<String, Object> config = new HashMap<>();
 
@@ -85,7 +84,6 @@ public class KafkaConfig {
         factory.setCommonErrorHandler(errorHandler);
         return factory;
     }
-
     @Bean
     public KafkaTemplate<Long, Object> kafkaTemplate() {
         Map<String, Object> config = new HashMap<>();

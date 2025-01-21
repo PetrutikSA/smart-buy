@@ -4,13 +4,17 @@ services:
     image: smart-buy-request-service
     container_name: smart-buy-request-service
     ports:
-      - "9090:9090"
+      - "8090:8090"
     depends_on:
       - smart-buy-request-db
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://smart-buy-request-db:5432/${REQUEST_DB_NAME}
       - SPRING_DATASOURCE_USERNAME=${REQUEST_DB_USERNAME}
       - SPRING_DATASOURCE_PASSWORD=${REQUEST_DB_PASSWORD}
+      - KAFKA_BOOTSTRAP_SERVERS=kafka-1:9092,kafka-2:9094
+    networks:
+      - kafka
+      - requests
 
   smart-buy-request-db:
     image: postgres:16.1
@@ -26,3 +30,11 @@ services:
       timeout: 5s
       interval: 5s
       retries: 10
+    networks:
+      - requests
+
+networks:
+  kafka:
+    external: true
+    name: smartbuy-kafka
+  requests:

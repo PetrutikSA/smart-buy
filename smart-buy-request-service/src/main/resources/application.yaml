@@ -1,5 +1,5 @@
 server:
-  port: 9090
+  port: 8090
 spring:
   jpa:
     hibernate:
@@ -17,6 +17,15 @@ spring:
   sql:
     init:
       mode: always
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
+    consumer:
+      bootstrap: ${KAFKA_BOOTSTRAP_SERVERS}
+      group-id: request-service-event
+    producer:
+      bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
+      key-serializer: org.apache.kafka.common.serialization.LongSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
 logging:
   level:
     org:
@@ -26,3 +35,10 @@ logging:
           jpa.JpaTransactionManager: DEBUG
         transaction: INFO
         transaction.interceptor: TRACE
+smartbuy:
+  kafka:
+    topic:
+      name:
+        user:
+          request: user-request-topic
+          response: user-response-topic
