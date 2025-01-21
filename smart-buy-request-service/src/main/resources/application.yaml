@@ -24,8 +24,8 @@ spring:
       group-id: request-service-event
     producer:
       bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
-      key-serializer: org.apache.kafka.common.serialization.LongSerializer
-      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      #key-serializer: org.apache.kafka.common.serialization.LongSerializer
+      #value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
 logging:
   level:
     org:
