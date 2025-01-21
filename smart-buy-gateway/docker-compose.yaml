@@ -26,7 +26,7 @@ services:
     environment:
       - POSTGRES_PASSWORD=${CONVERSATION_DB_PASSWORD}
       - POSTGRES_USER=${CONVERSATION_DB_USERNAME}
-      - POSTGRES_DB=${CONVERSATION_DB_PASSWORD}
+      - POSTGRES_DB=${CONVERSATION_DB_NAME}
     healthcheck:
       test: pg_isready -q -d $$POSTGRES_DB -U $$POSTGRES_USER
       timeout: 5s
