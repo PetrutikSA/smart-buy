@@ -78,34 +78,46 @@ public class SmartBuyBot extends TelegramLongPollingBot {
                 " и при снижении цены отправлю тебе ссылку. Хватит переплачивать, мы поймаем нужную цену! " +
                 "Попробуйте добавить свой первый запрос, выберите в меню пункт добавить и начните покупать выгоднее!";
         sendText(chatId, answer);
+        // Check user, register as NEW if not exist, change to NEW if exist
     }
 
     private void addCommandReceived(Long chatId) {
+        //Check request limit
         sendText(chatId, "Введите, пожалуйста, следующее:");
         sendText(chatId, "Поисковый запрос который необходимо отслеживать");
+        // change status ADD1, break
         sendText(chatId, "Не дороже какой цены должен быть товар");
+        // change status ADD2, break
         sendText(chatId, "Отлично, как найду, пришлю ссылку :)");
+        // change status NEW
     }
 
     private void listCommandReceived(Long chatId) {
         sendText(chatId, "Список всех действующих запросов");
+        // change status NEW
     }
 
     private void showCommandReceived(Long chatId) {
         sendText(chatId, "Список всех действующих запросов");
         sendText(chatId, "Напишите, пожалуйста, номер запрос по которому хотите получить информацию");
+        // change status SHOW, break
         sendText(chatId, "Информация по запросу:");
+        // change status NEW
     }
 
     private void removeCommandReceived(Long chatId) {
         sendText(chatId, "Список всех действующих запросов");
         sendText(chatId, "Напишите, пожалуйста, номер запрос который хотите удалить");
+        // change status DELETE, break
         sendText(chatId, "Запрос удален");
+        // change status NEW
     }
 
     private void removeAllCommandReceived(Long chatId) {
         sendText(chatId, "Вы действительно хотите удалить все запросы? Если да, напишите \"да\":");
+        // change status DELETE_ALL, break
         sendText(chatId, "Все запросы удалены");
+        // change status NEW
     }
 
     private void sendText(Long chatId, String text) {
