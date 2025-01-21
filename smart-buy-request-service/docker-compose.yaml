@@ -1,6 +1,6 @@
 services:
   smart-buy-request-service:
-    build: smart-buy-request-service
+    build: ./
     image: smart-buy-request-service
     container_name: smart-buy-request-service
     ports:

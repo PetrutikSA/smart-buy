@@ -1,7 +1,9 @@
+server:
+  port: 8080
 smartbuy:
   bot:
-    name: ${SMARTBYUBOT_NAME}
-    token: ${SMARTBYUBOT_TOKEN}
+    name: ${SMARTBUYBOT_NAME}
+    token: ${SMARTBUYBOT_TOKEN}
   kafka:
     topic:
       name:
@@ -11,6 +13,7 @@ smartbuy:
 
 spring:
   kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
     consumer:
-      bootstrap: localhost:9092,localhost:9094
+      bootstrap: ${KAFKA_BOOTSTRAP_SERVERS}
       group-id: user-response-event
