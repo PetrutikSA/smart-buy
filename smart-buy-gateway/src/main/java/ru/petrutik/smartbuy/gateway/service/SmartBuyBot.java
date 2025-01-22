@@ -11,6 +11,7 @@ import org.telegram.telegrambots.meta.api.objects.commands.BotCommand;
 import org.telegram.telegrambots.meta.api.objects.commands.scope.BotCommandScopeDefault;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.petrutik.smartbuy.gateway.config.BotMenuCommand;
+import ru.petrutik.smartbuy.gateway.model.ConversationStatus;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -49,26 +50,19 @@ public class SmartBuyBot extends TelegramLongPollingBot {
             if(message.hasText()) {
                 String textMessage = message.getText();
                 switch (textMessage) {
-                    case "/start":
-                        startCommandReceived(chatId, message.getChat().getFirstName());
-                        break;
-                    case "/add":
-                        addCommandReceived(chatId);
-                        break;
-                    case "/list":
-                        listCommandReceived(chatId);
-                        break;
-                    case "/show":
-                        showCommandReceived(chatId);
-                        break;
-                    case "/remove":
-                        removeCommandReceived(chatId);
-                        break;
-                    case "/remove_all":
-                        removeAllCommandReceived(chatId);
-                        break;
-                    default:
-                        sendText(chatId, "Приношу извинения, данная команда не предусмотрена :(");
+                    case "/start" -> startCommandReceived(chatId, message.getChat().getFirstName());
+                    case "/add" -> addCommandReceived(chatId, ConversationStatus.ADD0, textMessage);
+                    case "/list" -> listCommandReceived(chatId);
+                    case "/show" -> showCommandReceived(chatId);
+                    case "/remove" -> removeCommandReceived(chatId);
+                    case "/remove_all" -> removeAllCommandReceived(chatId);
+                    default -> {
+                        ConversationStatus conversationStatus = userRequestService.checkConversationStatus(chatId);
+                        switch (conversationStatus) {
+                            case ADD1, ADD2 -> addCommandReceived(chatId, conversationStatus, textMessage);
+                            default -> sendText(chatId, "Приношу извинения, данная команда не предусмотрена :(");
+                        }
+                    }
                 }
             }
         }
@@ -80,19 +74,31 @@ public class SmartBuyBot extends TelegramLongPollingBot {
                 "Просто введи поисковый запрос, который я буду каждый день проверять в гипермаркетах" +
                 " и при снижении цены отправлю тебе ссылку. Хватит переплачивать, мы поймаем нужную цену! " +
                 "Попробуйте добавить свой первый запрос, выберите в меню пункт добавить и начните покупать выгоднее!";
-        userRequestService.registerUser(chatId);
+        userRequestService.registerUserOrSetStatusToNew(chatId);
         sendText(chatId, answer);
     }
 
-    private void addCommandReceived(Long chatId) {
-        //Check request limit
-        sendText(chatId, "Введите, пожалуйста, следующее:");
-        sendText(chatId, "Поисковый запрос который необходимо отслеживать");
-        // change status ADD1, break
-        sendText(chatId, "Не дороже какой цены должен быть товар");
-        // change status ADD2, break
-        sendText(chatId, "Отлично, как найду, пришлю ссылку :)");
-        // change status NEW
+    private void addCommandReceived(Long chatId, ConversationStatus conversationStatus, String clientMessage) {
+        switch (conversationStatus) {
+            case ADD0 -> {
+                if (userRequestService.isRequestLimitReached(chatId)) {
+                    sendText(chatId, "К сожаление достигнут лимит запросов :(");
+                    sendText(chatId, "Для добавления нового запроса, пожалуйста, удалите один из существующих");
+                    return;
+                }
+                sendText(chatId, "Введите, пожалуйста, следующее:");
+                sendText(chatId, "Поисковый запрос который необходимо отслеживать");
+                userRequestService.addRequest(chatId, conversationStatus, clientMessage);
+            }
+            case ADD1 -> {
+                sendText(chatId, "Не дороже какой цены должен быть товар (только цифры, без копеек)");
+                userRequestService.addRequest(chatId, conversationStatus, clientMessage);
+            }
+            case ADD2 -> {
+                sendText(chatId, "Отлично, как найду, пришлю ссылку :)");
+                userRequestService.addRequest(chatId, conversationStatus, clientMessage);
+            }
+        }
     }
 
     private void listCommandReceived(Long chatId) {

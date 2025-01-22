@@ -1,6 +1,8 @@
 server:
   port: 8080
 smartbuy:
+  app:
+    request-limit: 10
   bot:
     name: ${SMARTBUYBOT_NAME}
     token: ${SMARTBUYBOT_TOKEN}
