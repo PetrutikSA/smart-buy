@@ -16,7 +16,8 @@
 	<modules>
 		<module>smart-buy-gateway</module>
 		<module>smart-buy-request-service</module>
-	</modules>
+        <module>user-request-core</module>
+    </modules>
 	<packaging>pom</packaging>
 	<url/>
 	<licenses>
@@ -34,14 +35,5 @@
 	<properties>
 		<java.version>21</java.version>
 	</properties>
-
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-maven-plugin</artifactId>
-			</plugin>
-		</plugins>
-	</build>
 
 </project>

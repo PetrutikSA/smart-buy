@@ -18,10 +18,13 @@ import java.util.List;
 @Service
 public class SmartBuyBot extends TelegramLongPollingBot {
     private final String botName;
+    private final UserRequestService userRequestService;
 
-    public SmartBuyBot(@Value("${smartbuy.bot.name}") String botName, @Value("${smartbuy.bot.token}") String botToken) {
+    public SmartBuyBot(@Value("${smartbuy.bot.name}") String botName, @Value("${smartbuy.bot.token}") String botToken,
+                       UserRequestService userRequestService) {
         super(botToken);
         this.botName = botName;
+        this.userRequestService = userRequestService;
         List<BotCommand> listOfCommands = new ArrayList<>();
         for (BotMenuCommand command : BotMenuCommand.values()) {
             listOfCommands.add(new BotCommand(command.getCommand(), command.getDescription()));
@@ -77,8 +80,8 @@ public class SmartBuyBot extends TelegramLongPollingBot {
                 "Просто введи поисковый запрос, который я буду каждый день проверять в гипермаркетах" +
                 " и при снижении цены отправлю тебе ссылку. Хватит переплачивать, мы поймаем нужную цену! " +
                 "Попробуйте добавить свой первый запрос, выберите в меню пункт добавить и начните покупать выгоднее!";
+        userRequestService.registerUser(chatId);
         sendText(chatId, answer);
-        // Check user, register as NEW if not exist, change to NEW if exist
     }
 
     private void addCommandReceived(Long chatId) {
