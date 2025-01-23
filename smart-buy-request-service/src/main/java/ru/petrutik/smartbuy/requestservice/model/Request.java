@@ -18,7 +18,7 @@ public class Request {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String name;
+    private Integer requestNumber;
     private String searchQuery;
     private BigDecimal maxPrice;
     private boolean isUpdated;

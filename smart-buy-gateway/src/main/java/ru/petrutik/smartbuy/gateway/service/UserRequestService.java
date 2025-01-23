@@ -10,4 +10,8 @@ public interface UserRequestService {
     boolean isRequestLimitReached(Long chatId);
 
     void addRequest(Long chatId, ConversationStatus conversationStatus, String clientMessage);
+
+    void listOfAllRequests(Long chatId, ConversationStatus conversationStatus);
+
+    void showRequest(Long chatId, Integer requestNumber);
 }

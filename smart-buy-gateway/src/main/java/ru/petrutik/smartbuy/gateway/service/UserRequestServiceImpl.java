@@ -7,6 +7,8 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Service;
 import ru.petrutik.smartbuy.event.AddRequestEvent;
+import ru.petrutik.smartbuy.event.ListAllRequestsEvent;
+import ru.petrutik.smartbuy.event.ShowRequestEvent;
 import ru.petrutik.smartbuy.event.UserRegisterEvent;
 import ru.petrutik.smartbuy.gateway.config.AppConfig;
 import ru.petrutik.smartbuy.gateway.model.Conversation;
@@ -99,6 +101,24 @@ public class UserRequestServiceImpl implements UserRequestService {
                 conversation.setStatus(ConversationStatus.NEW);
             }
         }
+    }
+
+    @Override
+    public void listOfAllRequests(Long chatId, ConversationStatus conversationStatus) {
+        Conversation conversation = getConversationOrRegisterNew(chatId);
+        ListAllRequestsEvent listAllRequestsEvent = new ListAllRequestsEvent(chatId);
+        sendToKafkaTopic(chatId, listAllRequestsEvent);
+        conversation.setStatus(conversationStatus);
+        conversationRepository.save(conversation);
+    }
+
+    @Override
+    public void showRequest(Long chatId, Integer requestNumber) {
+        Conversation conversation = getConversationOrRegisterNew(chatId);
+        ShowRequestEvent showRequestEvent = new ShowRequestEvent(chatId, requestNumber);
+        sendToKafkaTopic(chatId, showRequestEvent);
+        conversation.setStatus(ConversationStatus.SHOW2);
+        conversationRepository.save(conversation);
     }
 
     private void sendToKafkaTopic(Long key, Object value) {

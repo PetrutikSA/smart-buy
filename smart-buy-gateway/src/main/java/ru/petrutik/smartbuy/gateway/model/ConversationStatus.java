@@ -5,7 +5,10 @@ public enum ConversationStatus {
     ADD0,
     ADD1,
     ADD2,
-    SHOW,
+    LIST,
+    SHOW0,
+    SHOW1,
+    SHOW2,
     DELETE,
     DELETE_ALL
 }

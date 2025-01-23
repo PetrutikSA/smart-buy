@@ -1,5 +1,7 @@
 package ru.petrutik.smartbuy.gateway.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
@@ -10,6 +12,7 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.commands.BotCommand;
 import org.telegram.telegrambots.meta.api.objects.commands.scope.BotCommandScopeDefault;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+import ru.petrutik.smartbuy.gateway.config.AppConfig;
 import ru.petrutik.smartbuy.gateway.config.BotMenuCommand;
 import ru.petrutik.smartbuy.gateway.model.ConversationStatus;
 
@@ -20,12 +23,16 @@ import java.util.List;
 public class SmartBuyBot extends TelegramLongPollingBot {
     private final String botName;
     private final UserRequestService userRequestService;
+    private final Logger logger;
+    private final AppConfig appConfig;
 
     public SmartBuyBot(@Value("${smartbuy.bot.name}") String botName, @Value("${smartbuy.bot.token}") String botToken,
-                       UserRequestService userRequestService) {
+                       UserRequestService userRequestService, AppConfig appConfig) {
         super(botToken);
         this.botName = botName;
         this.userRequestService = userRequestService;
+        this.appConfig = appConfig;
+        logger = LoggerFactory.getLogger(SmartBuyBot.class);
         List<BotCommand> listOfCommands = new ArrayList<>();
         for (BotMenuCommand command : BotMenuCommand.values()) {
             listOfCommands.add(new BotCommand(command.getCommand(), command.getDescription()));
@@ -53,13 +60,14 @@ public class SmartBuyBot extends TelegramLongPollingBot {
                     case "/start" -> startCommandReceived(chatId, message.getChat().getFirstName());
                     case "/add" -> addCommandReceived(chatId, ConversationStatus.ADD0, textMessage);
                     case "/list" -> listCommandReceived(chatId);
-                    case "/show" -> showCommandReceived(chatId);
+                    case "/show" -> showCommandReceived(chatId, ConversationStatus.SHOW0, textMessage);
                     case "/remove" -> removeCommandReceived(chatId);
                     case "/remove_all" -> removeAllCommandReceived(chatId);
                     default -> {
                         ConversationStatus conversationStatus = userRequestService.checkConversationStatus(chatId);
                         switch (conversationStatus) {
                             case ADD1, ADD2 -> addCommandReceived(chatId, conversationStatus, textMessage);
+                            case SHOW1, SHOW2 -> showCommandReceived(chatId, conversationStatus, textMessage);
                             default -> sendText(chatId, "Приношу извинения, данная команда не предусмотрена :(");
                         }
                     }
@@ -102,16 +110,43 @@ public class SmartBuyBot extends TelegramLongPollingBot {
     }
 
     private void listCommandReceived(Long chatId) {
-        sendText(chatId, "Список всех действующих запросов");
-        // change status NEW
+        listAllRequests(chatId, ConversationStatus.LIST);
     }
 
-    private void showCommandReceived(Long chatId) {
+    private void listAllRequests(Long chatId, ConversationStatus conversationStatus) {
+        ConversationStatus status = userRequestService.checkConversationStatus(chatId);
+        if (status == conversationStatus) {
+            sendText(chatId, "Ваш запрос обрабатывается, пожалуйста, подождите");
+            return;
+        }
         sendText(chatId, "Список всех действующих запросов");
-        sendText(chatId, "Напишите, пожалуйста, номер запрос по которому хотите получить информацию");
-        // change status SHOW, break
-        sendText(chatId, "Информация по запросу:");
-        // change status NEW
+        userRequestService.listOfAllRequests(chatId, conversationStatus); //TODO in handler make status new
+    }
+
+    private void showCommandReceived(Long chatId, ConversationStatus conversationStatus, String clientMessage) {
+        switch (conversationStatus) {
+            case SHOW0 -> {
+                sendText(chatId, "Напишите, пожалуйста, номер запроса, по которому " +
+                        "хотите получить информацию (только цифры)");
+                listAllRequests(chatId, ConversationStatus.SHOW1);
+            }
+            case SHOW1 -> {
+                int number;
+                try {
+                    number = Integer.parseInt(clientMessage);
+                } catch (NumberFormatException e) {
+                    logger.error("Error when parsing number of request: {}", clientMessage, e);
+                    number = -1;
+                }
+                if (number < 1 && number > appConfig.getRequestsPerUserLimit()) {
+                    sendText(chatId, "Введено некорректное значение. Попробуйте, пожалуйста, снова (только цифры)");
+                } else {
+                    sendText(chatId, "Информация по запросу:");
+                    userRequestService.showRequest(chatId, number); //TODO in handler make status new
+                }
+            }
+            case SHOW2 -> sendText(chatId, "Ваш запрос обрабатывается, пожалуйста, подождите");
+        }
     }
 
     private void removeCommandReceived(Long chatId) {
