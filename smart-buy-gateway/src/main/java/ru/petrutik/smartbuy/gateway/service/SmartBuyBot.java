@@ -26,6 +26,7 @@ public class SmartBuyBot extends TelegramLongPollingBot {
     private final UserRequestService userRequestService;
     private final Logger logger;
     private final AppConfig appConfig;
+    private final String operationInProcess = "Ваш запрос обрабатывается, пожалуйста, подождите";
 
     public SmartBuyBot(@Value("${smartbuy.bot.name}") String botName, @Value("${smartbuy.bot.token}") String botToken,
                        UserRequestService userRequestService, AppConfig appConfig) {
@@ -55,7 +56,7 @@ public class SmartBuyBot extends TelegramLongPollingBot {
         if (update != null && update.hasMessage()) {
             Message message = update.getMessage();
             long chatId = message.getChatId();
-            if(message.hasText()) {
+            if (message.hasText()) {
                 String textMessage = message.getText();
                 switch (textMessage) {
                     case "/start" -> startCommandReceived(chatId, message.getChat().getFirstName());
@@ -63,13 +64,15 @@ public class SmartBuyBot extends TelegramLongPollingBot {
                     case "/list" -> listCommandReceived(chatId);
                     case "/show" -> showCommandReceived(chatId, ConversationStatus.SHOW0, textMessage);
                     case "/remove" -> removeCommandReceived(chatId, ConversationStatus.DELETE0, textMessage);
-                    case "/remove_all" -> removeAllCommandReceived(chatId);
+                    case "/remove_all" -> removeAllCommandReceived(chatId, ConversationStatus.DELETE_ALL0, textMessage);
                     default -> {
                         ConversationStatus conversationStatus = userRequestService.checkConversationStatus(chatId);
                         switch (conversationStatus) {
                             case ADD1, ADD2 -> addCommandReceived(chatId, conversationStatus, textMessage);
                             case SHOW1, SHOW2 -> showCommandReceived(chatId, conversationStatus, textMessage);
                             case DELETE1, DELETE2 -> removeCommandReceived(chatId, conversationStatus, textMessage);
+                            case DELETE_ALL1, DELETE_ALL2 ->
+                                    removeAllCommandReceived(chatId, conversationStatus, textMessage);
                             default -> sendText(chatId, "Приношу извинения, данная команда не предусмотрена :(");
                         }
                     }
@@ -118,7 +121,7 @@ public class SmartBuyBot extends TelegramLongPollingBot {
     private void listAllRequests(Long chatId, ConversationStatus conversationStatus) {
         ConversationStatus status = userRequestService.checkConversationStatus(chatId);
         if (status == conversationStatus) {
-            sendText(chatId, "Ваш запрос обрабатывается, пожалуйста, подождите");
+            sendText(chatId, operationInProcess);
             return;
         }
         sendText(chatId, "Список всех действующих запросов");
@@ -139,7 +142,7 @@ public class SmartBuyBot extends TelegramLongPollingBot {
                     userRequestService.showRequest(chatId, optionalRequestNumber.get()); //TODO in handler make status new
                 }
             }
-            case SHOW2 -> sendText(chatId, "Ваш запрос обрабатывается, пожалуйста, подождите");
+            case SHOW2 -> sendText(chatId, operationInProcess);
         }
     }
 
@@ -156,7 +159,7 @@ public class SmartBuyBot extends TelegramLongPollingBot {
                     sendText(chatId, "Запрос удален"); //TODO in handler make status new
                 }
             }
-            case DELETE2 -> sendText(chatId, "Ваш запрос обрабатывается, пожалуйста, подождите");
+            case DELETE2 -> sendText(chatId, operationInProcess);
         }
     }
 
@@ -175,11 +178,23 @@ public class SmartBuyBot extends TelegramLongPollingBot {
         return Optional.of(number);
     }
 
-    private void removeAllCommandReceived(Long chatId) {
-        sendText(chatId, "Вы действительно хотите удалить все запросы? Если да, напишите \"да\":");
-        // change status DELETE_ALL, break
-        sendText(chatId, "Все запросы удалены");
-        // change status NEW
+    private void removeAllCommandReceived(Long chatId, ConversationStatus conversationStatus, String clientMessage) {
+        switch (conversationStatus) {
+            case DELETE_ALL0 -> {
+                sendText(chatId, "Вы действительно хотите удалить все запросы? Если да, напишите слово \"да\":");
+                userRequestService.removeAll(chatId, conversationStatus);
+            }
+            case DELETE_ALL1 -> {
+                if (clientMessage.equalsIgnoreCase("да")) {
+                    userRequestService.removeAll(chatId, conversationStatus);
+                    sendText(chatId, "Все запросы удалены"); //TODO in handler make status new
+                } else {
+                    userRequestService.makeConversationStatusNew(chatId);
+                    sendText(chatId, "Подтверждение не получено, операция отменена");
+                }
+            }
+            case DELETE_ALL2 -> sendText(chatId, operationInProcess);
+        }
     }
 
     private void sendText(Long chatId, String text) {

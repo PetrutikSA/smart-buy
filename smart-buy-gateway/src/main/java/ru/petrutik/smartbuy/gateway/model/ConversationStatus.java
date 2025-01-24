@@ -12,5 +12,7 @@ public enum ConversationStatus {
     DELETE0,
     DELETE1,
     DELETE2,
-    DELETE_ALL
+    DELETE_ALL0,
+    DELETE_ALL1,
+    DELETE_ALL2
 }

@@ -16,4 +16,8 @@ public interface UserRequestService {
     void showRequest(Long chatId, Integer requestNumber);
 
     void removeRequest(Long chatId, Integer requestNumber);
+
+    void removeAll(Long chatId, ConversationStatus conversationStatus);
+
+    void makeConversationStatusNew(Long chatId);
 }
