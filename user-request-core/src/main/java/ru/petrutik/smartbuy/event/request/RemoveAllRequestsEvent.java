@@ -1,4 +1,4 @@
-package ru.petrutik.smartbuy.event;
+package ru.petrutik.smartbuy.event.request;
 
 public class RemoveAllRequestsEvent {
     private Long chatId;

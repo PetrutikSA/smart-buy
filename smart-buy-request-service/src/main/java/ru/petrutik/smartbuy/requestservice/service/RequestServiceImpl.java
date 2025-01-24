@@ -1,21 +1,42 @@
 package ru.petrutik.smartbuy.requestservice.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Service;
+import ru.petrutik.smartbuy.event.dto.RequestDto;
+import ru.petrutik.smartbuy.event.response.ListAllResponseEvent;
+import ru.petrutik.smartbuy.requestservice.dto.mapper.RequestMapper;
 import ru.petrutik.smartbuy.requestservice.model.Request;
 import ru.petrutik.smartbuy.requestservice.model.User;
 import ru.petrutik.smartbuy.requestservice.repository.RequestRepository;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 @Service
 public class RequestServiceImpl implements RequestService {
     private final UserService userService;
     private final RequestRepository requestRepository;
+    private final RequestMapper requestMapper;
+    private final KafkaTemplate<Long, Object> kafkaTemplate;
+    private final String responseTopicName;
+    private final Logger logger;
 
-    public RequestServiceImpl(UserService userService, RequestRepository requestRepository) {
+    public RequestServiceImpl(UserService userService,
+                              RequestRepository requestRepository,
+                              RequestMapper requestMapper,
+                              KafkaTemplate<Long, Object> kafkaTemplate,
+                              @Value("#{@kafkaConfig.getResponseTopicName()}") String responseTopicName) {
         this.userService = userService;
         this.requestRepository = requestRepository;
+        this.requestMapper = requestMapper;
+        this.kafkaTemplate = kafkaTemplate;
+        this.responseTopicName = responseTopicName;
+        this.logger = LoggerFactory.getLogger(RequestServiceImpl.class);
     }
 
     @Override
@@ -33,8 +54,13 @@ public class RequestServiceImpl implements RequestService {
     }
 
     @Override
-    public void getAllRequests() {
-
+    public void getAllRequests(Long chatId) {
+        User user = userService.getUserByChatId(chatId);
+        List<RequestDto> userRequestsDto = user.getRequests().stream()
+                .map(requestMapper::requestToRequestDto)
+                .toList();
+        ListAllResponseEvent listAllResponseEvent = new ListAllResponseEvent(chatId, userRequestsDto);
+        sendToKafkaTopic(chatId, listAllResponseEvent);
     }
 
     @Override
@@ -50,5 +76,17 @@ public class RequestServiceImpl implements RequestService {
     @Override
     public void deleteAllRequest() {
 
+    }
+
+    private void sendToKafkaTopic(Long key, Object value) {
+        CompletableFuture<SendResult<Long, Object>> future =
+                kafkaTemplate.send(responseTopicName, key, value);
+        future.whenComplete(((stringSendResult, throwable) -> {
+            if (throwable != null) {
+                logger.error("Failed to send message: {}", throwable.getLocalizedMessage(), throwable);
+            } else {
+                logger.info("Message sent successfully {}", stringSendResult);
+            }
+        }));
     }
 }

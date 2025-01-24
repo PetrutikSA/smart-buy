@@ -1,12 +1,12 @@
-package ru.petrutik.smartbuy.event;
+package ru.petrutik.smartbuy.event.request;
 
-public class ListAllRequestsEvent {
+public class UserRegisterEvent {
     private Long chatId;
 
-    public ListAllRequestsEvent() {
+    public UserRegisterEvent() {
     }
 
-    public ListAllRequestsEvent(Long chatId) {
+    public UserRegisterEvent(Long chatId) {
         this.chatId = chatId;
     }
 
