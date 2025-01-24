@@ -8,6 +8,7 @@ import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Service;
 import ru.petrutik.smartbuy.event.AddRequestEvent;
 import ru.petrutik.smartbuy.event.ListAllRequestsEvent;
+import ru.petrutik.smartbuy.event.RemoveRequestEvent;
 import ru.petrutik.smartbuy.event.ShowRequestEvent;
 import ru.petrutik.smartbuy.event.UserRegisterEvent;
 import ru.petrutik.smartbuy.gateway.config.AppConfig;
@@ -118,6 +119,15 @@ public class UserRequestServiceImpl implements UserRequestService {
         ShowRequestEvent showRequestEvent = new ShowRequestEvent(chatId, requestNumber);
         sendToKafkaTopic(chatId, showRequestEvent);
         conversation.setStatus(ConversationStatus.SHOW2);
+        conversationRepository.save(conversation);
+    }
+
+    @Override
+    public void removeRequest(Long chatId, Integer requestNumber) {
+        Conversation conversation = getConversationOrRegisterNew(chatId);
+        RemoveRequestEvent removeRequestEvent = new RemoveRequestEvent(chatId, requestNumber);
+        sendToKafkaTopic(chatId, removeRequestEvent);
+        conversation.setStatus(ConversationStatus.DELETE2);
         conversationRepository.save(conversation);
     }
 

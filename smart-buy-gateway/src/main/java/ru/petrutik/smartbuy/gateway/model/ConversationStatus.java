@@ -9,6 +9,8 @@ public enum ConversationStatus {
     SHOW0,
     SHOW1,
     SHOW2,
-    DELETE,
+    DELETE0,
+    DELETE1,
+    DELETE2,
     DELETE_ALL
 }

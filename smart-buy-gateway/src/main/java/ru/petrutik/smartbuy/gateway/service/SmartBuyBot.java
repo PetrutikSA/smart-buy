@@ -18,6 +18,7 @@ import ru.petrutik.smartbuy.gateway.model.ConversationStatus;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class SmartBuyBot extends TelegramLongPollingBot {
@@ -61,13 +62,14 @@ public class SmartBuyBot extends TelegramLongPollingBot {
                     case "/add" -> addCommandReceived(chatId, ConversationStatus.ADD0, textMessage);
                     case "/list" -> listCommandReceived(chatId);
                     case "/show" -> showCommandReceived(chatId, ConversationStatus.SHOW0, textMessage);
-                    case "/remove" -> removeCommandReceived(chatId);
+                    case "/remove" -> removeCommandReceived(chatId, ConversationStatus.DELETE0, textMessage);
                     case "/remove_all" -> removeAllCommandReceived(chatId);
                     default -> {
                         ConversationStatus conversationStatus = userRequestService.checkConversationStatus(chatId);
                         switch (conversationStatus) {
                             case ADD1, ADD2 -> addCommandReceived(chatId, conversationStatus, textMessage);
                             case SHOW1, SHOW2 -> showCommandReceived(chatId, conversationStatus, textMessage);
+                            case DELETE1, DELETE2 -> removeCommandReceived(chatId, conversationStatus, textMessage);
                             default -> sendText(chatId, "Приношу извинения, данная команда не предусмотрена :(");
                         }
                     }
@@ -131,30 +133,46 @@ public class SmartBuyBot extends TelegramLongPollingBot {
                 listAllRequests(chatId, ConversationStatus.SHOW1);
             }
             case SHOW1 -> {
-                int number;
-                try {
-                    number = Integer.parseInt(clientMessage);
-                } catch (NumberFormatException e) {
-                    logger.error("Error when parsing number of request: {}", clientMessage, e);
-                    number = -1;
-                }
-                if (number < 1 && number > appConfig.getRequestsPerUserLimit()) {
-                    sendText(chatId, "Введено некорректное значение. Попробуйте, пожалуйста, снова (только цифры)");
-                } else {
+                Optional<Integer> optionalRequestNumber = parseRequestNumber(chatId, clientMessage);
+                if (optionalRequestNumber.isPresent()) {
                     sendText(chatId, "Информация по запросу:");
-                    userRequestService.showRequest(chatId, number); //TODO in handler make status new
+                    userRequestService.showRequest(chatId, optionalRequestNumber.get()); //TODO in handler make status new
                 }
             }
             case SHOW2 -> sendText(chatId, "Ваш запрос обрабатывается, пожалуйста, подождите");
         }
     }
 
-    private void removeCommandReceived(Long chatId) {
-        sendText(chatId, "Список всех действующих запросов");
-        sendText(chatId, "Напишите, пожалуйста, номер запрос который хотите удалить");
-        // change status DELETE, break
-        sendText(chatId, "Запрос удален");
-        // change status NEW
+    private void removeCommandReceived(Long chatId, ConversationStatus conversationStatus, String clientMessage) {
+        switch (conversationStatus) {
+            case DELETE0 -> {
+                sendText(chatId, "Напишите, пожалуйста, номер запрос который хотите удалить");
+                listAllRequests(chatId, ConversationStatus.DELETE1);
+            }
+            case DELETE1 -> {
+                Optional<Integer> optionalRequestNumber = parseRequestNumber(chatId, clientMessage);
+                if (optionalRequestNumber.isPresent()) {
+                    userRequestService.removeRequest(chatId, optionalRequestNumber.get());
+                    sendText(chatId, "Запрос удален"); //TODO in handler make status new
+                }
+            }
+            case DELETE2 -> sendText(chatId, "Ваш запрос обрабатывается, пожалуйста, подождите");
+        }
+    }
+
+    private Optional<Integer> parseRequestNumber(Long chatId, String clientMessage) {
+        int number;
+        try {
+            number = Integer.parseInt(clientMessage);
+        } catch (NumberFormatException e) {
+            logger.error("Error when parsing number of request: {}", clientMessage, e);
+            number = -1;
+        }
+        if (number < 1 && number > appConfig.getRequestsPerUserLimit()) {
+            sendText(chatId, "Введено некорректное значение. Попробуйте, пожалуйста, снова (только цифры)");
+            return Optional.empty();
+        }
+        return Optional.of(number);
     }
 
     private void removeAllCommandReceived(Long chatId) {
