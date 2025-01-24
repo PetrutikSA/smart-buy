@@ -197,7 +197,7 @@ public class SmartBuyBot extends TelegramLongPollingBot {
         }
     }
 
-    private void sendText(Long chatId, String text) {
+    public void sendText(Long chatId, String text) {
         SendMessage sm = SendMessage.builder()
                 .chatId(chatId.toString())
                 .text(text).build();
