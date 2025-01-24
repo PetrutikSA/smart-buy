@@ -1,30 +1,13 @@
 package ru.petrutik.smartbuy.requestservice.service;
 
-import org.springframework.stereotype.Service;
+public interface RequestService {
+    void addRequest(Long chatId, String url, Integer price);
 
-@Service
-public class RequestService {
-    public void registerUser() {
+    void getAllRequests();
 
-    }
+    void getRequest();
 
-    public void addRequest() {
+    void deleteRequest();
 
-    }
-
-    public void getAllRequests() {
-
-    }
-
-    public void getRequest() {
-
-    }
-
-    public void deleteRequest() {
-
-    }
-
-    public void deleteAllRequest() {
-
-    }
+    void deleteAllRequest();
 }

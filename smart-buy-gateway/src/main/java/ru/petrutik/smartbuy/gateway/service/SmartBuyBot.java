@@ -156,7 +156,7 @@ public class SmartBuyBot extends TelegramLongPollingBot {
                 Optional<Integer> optionalRequestNumber = parseRequestNumber(chatId, clientMessage);
                 if (optionalRequestNumber.isPresent()) {
                     userRequestService.removeRequest(chatId, optionalRequestNumber.get());
-                    sendText(chatId, "Запрос удален"); //TODO in handler make status new
+                    sendText(chatId, "Запрос удален"); //TODO in handler make status new, change requestsAdded
                 }
             }
             case DELETE2 -> sendText(chatId, operationInProcess);
@@ -187,7 +187,7 @@ public class SmartBuyBot extends TelegramLongPollingBot {
             case DELETE_ALL1 -> {
                 if (clientMessage.equalsIgnoreCase("да")) {
                     userRequestService.removeAll(chatId, conversationStatus);
-                    sendText(chatId, "Все запросы удалены"); //TODO in handler make status new
+                    sendText(chatId, "Все запросы удалены"); //TODO in handler make status new, change requestsAdded
                 } else {
                     userRequestService.makeConversationStatusNew(chatId);
                     sendText(chatId, "Подтверждение не получено, операция отменена");

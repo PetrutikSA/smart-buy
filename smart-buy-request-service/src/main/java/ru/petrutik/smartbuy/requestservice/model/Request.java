@@ -10,6 +10,7 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -33,7 +34,7 @@ public class Request {
                     referencedColumnName = "id"
             )
     )
-    private List<Product> result;
+    private List<Product> result = new ArrayList<>();
     @OneToMany
     @JoinTable(name = "requests_bans",
             joinColumns = @JoinColumn(
@@ -45,5 +46,57 @@ public class Request {
                     referencedColumnName = "id"
             )
     )
-    private List<Product> banned;
+    private List<Product> banned = new ArrayList<>();
+
+    public Long getId() {
+        return id;
+    }
+
+    public Integer getRequestNumber() {
+        return requestNumber;
+    }
+
+    public void setRequestNumber(Integer requestNumber) {
+        this.requestNumber = requestNumber;
+    }
+
+    public String getSearchQuery() {
+        return searchQuery;
+    }
+
+    public void setSearchQuery(String searchQuery) {
+        this.searchQuery = searchQuery;
+    }
+
+    public BigDecimal getMaxPrice() {
+        return maxPrice;
+    }
+
+    public void setMaxPrice(BigDecimal maxPrice) {
+        this.maxPrice = maxPrice;
+    }
+
+    public boolean isUpdated() {
+        return isUpdated;
+    }
+
+    public void setUpdated(boolean updated) {
+        isUpdated = updated;
+    }
+
+    public List<Product> getResult() {
+        return result;
+    }
+
+    public void setResult(List<Product> result) {
+        this.result = result;
+    }
+
+    public List<Product> getBanned() {
+        return banned;
+    }
+
+    public void setBanned(List<Product> banned) {
+        this.banned = banned;
+    }
 }

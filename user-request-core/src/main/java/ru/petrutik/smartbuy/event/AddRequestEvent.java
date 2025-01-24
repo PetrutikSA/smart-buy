@@ -2,16 +2,16 @@ package ru.petrutik.smartbuy.event;
 
 public class AddRequestEvent {
     private Long chatId;
-    private String url;
-    private Integer price;
+    private String searchQuery;
+    private Integer maxPrice;
 
     public AddRequestEvent() {
     }
 
     public AddRequestEvent(Long chatId, String url, Integer price) {
         this.chatId = chatId;
-        this.url = url;
-        this.price = price;
+        this.searchQuery = url;
+        this.maxPrice = price;
     }
 
     public Long getChatId() {
@@ -22,19 +22,19 @@ public class AddRequestEvent {
         this.chatId = chatId;
     }
 
-    public String getUrl() {
-        return url;
+    public String getSearchQuery() {
+        return searchQuery;
     }
 
-    public void setUrl(String url) {
-        this.url = url;
+    public void setSearchQuery(String searchQuery) {
+        this.searchQuery = searchQuery;
     }
 
-    public Integer getPrice() {
-        return price;
+    public Integer getMaxPrice() {
+        return maxPrice;
     }
 
-    public void setPrice(Integer price) {
-        this.price = price;
+    public void setMaxPrice(Integer maxPrice) {
+        this.maxPrice = maxPrice;
     }
 }

@@ -4,6 +4,8 @@ import org.springframework.stereotype.Service;
 import ru.petrutik.smartbuy.requestservice.model.User;
 import ru.petrutik.smartbuy.requestservice.repository.UserRepository;
 
+import java.util.Optional;
+
 @Service
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
@@ -13,9 +15,22 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void registerUser(Long chatId) {
+    public User registerUser(Long chatId) {
         User user = new User();
         user.setChatId(chatId);
-        userRepository.save(user);
+        user = userRepository.save(user);
+        return user;
+    }
+
+    @Override
+    public User getUserByChatId(Long chatId) {
+        Optional<User> optionalUser = userRepository.findByChatId(chatId);
+        return optionalUser.orElse(registerUser(chatId));
+    }
+
+    @Override
+    public User updateUser(User user) {
+        user = userRepository.save(user);
+        return user;
     }
 }

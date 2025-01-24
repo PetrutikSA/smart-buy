@@ -100,6 +100,7 @@ public class UserRequestServiceImpl implements UserRequestService {
                 AddRequestEvent addRequestEvent = new AddRequestEvent(chatId, conversation.getClientInput(), price);
                 sendToKafkaTopic(chatId, addRequestEvent);
                 conversation.setClientInput(null);
+                conversation.setRequestAdded(conversation.getRequestAdded() + 1);
                 conversation.setStatus(ConversationStatus.NEW);
             }
         }

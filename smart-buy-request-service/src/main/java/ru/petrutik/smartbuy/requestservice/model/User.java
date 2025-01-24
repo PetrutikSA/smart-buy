@@ -9,6 +9,7 @@ import jakarta.persistence.JoinTable;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -29,7 +30,7 @@ public class User {
                     referencedColumnName = "id"
             )
     )
-    private List<Request> requests;
+    private List<Request> requests = new ArrayList<>();
 
     public Long getId() {
         return id;
