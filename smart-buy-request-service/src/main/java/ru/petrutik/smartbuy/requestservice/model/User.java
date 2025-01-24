@@ -30,4 +30,24 @@ public class User {
             )
     )
     private List<Request> requests;
+
+    public Long getId() {
+        return id;
+    }
+
+    public Long getChatId() {
+        return chatId;
+    }
+
+    public void setChatId(Long chatId) {
+        this.chatId = chatId;
+    }
+
+    public List<Request> getRequests() {
+        return requests;
+    }
+
+    public void setRequests(List<Request> requests) {
+        this.requests = requests;
+    }
 }
