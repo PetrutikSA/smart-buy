@@ -46,19 +46,25 @@ public class RequestServiceImpl implements RequestService {
         request.setSearchQuery(searchQuery);
         request.setMaxPrice(BigDecimal.valueOf(maxPrice));
         request.setUpdated(false);
+        logger.info("New request created: {}", request);
         List<Request> userRequests = user.getRequests();
         userRequests.add(request);
         request.setRequestNumber(userRequests.size());
         requestRepository.save(request);
+        logger.info("Request saved to DB: {}", request);
         userService.updateUser(user);
     }
 
     @Override
     public void getAllRequests(Long chatId) {
         User user = userService.getUserByChatId(chatId);
-        List<RequestDto> userRequestsDto = user.getRequests().stream()
+        logger.info("Getting user's request list, user: {}", user);
+        List<Request> requests = user.getRequests();
+        logger.info("Got user requests list: {}", requests);
+        List<RequestDto> userRequestsDto = requests.stream()
                 .map(requestMapper::requestToRequestDto)
                 .toList();
+        logger.info("Getting list of all requests of user: {}, requests: {}", user, userRequestsDto);
         ListAllResponseEvent listAllResponseEvent = new ListAllResponseEvent(chatId, userRequestsDto);
         sendToKafkaTopic(chatId, listAllResponseEvent);
     }

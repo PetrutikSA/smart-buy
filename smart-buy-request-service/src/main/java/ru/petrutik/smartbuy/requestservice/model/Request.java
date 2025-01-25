@@ -103,4 +103,13 @@ public class Request {
     public void setBanned(List<Product> banned) {
         this.banned = banned;
     }
+
+    @Override
+    public String toString() {
+        return "Request{" +
+                "id=" + id +
+                ", searchQuery='" + searchQuery + '\'' +
+                ", maxPrice=" + maxPrice +
+                '}';
+    }
 }

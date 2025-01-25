@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS requests (
   request_number INT NOT NULL,
   search_query VARCHAR NOT NULL,
   max_price DECIMAL(10,2),
-  isUpdated BOOLEAN,
+  is_updated BOOLEAN,
   CONSTRAINT pk_requests PRIMARY KEY (id)
 );
 
