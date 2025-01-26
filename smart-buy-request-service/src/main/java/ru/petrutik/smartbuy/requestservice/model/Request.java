@@ -6,6 +6,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
@@ -22,6 +23,9 @@ public class Request {
     private Integer requestNumber;
     private String searchQuery;
     private BigDecimal maxPrice;
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User user;
     private boolean isUpdated;
     @OneToMany
     @JoinTable(name = "requests_results",
@@ -78,6 +82,14 @@ public class Request {
 
     public void setMaxPrice(BigDecimal maxPrice) {
         this.maxPrice = maxPrice;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
     }
 
     public boolean isUpdated() {

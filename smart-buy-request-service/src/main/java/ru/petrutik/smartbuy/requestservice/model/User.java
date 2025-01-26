@@ -1,6 +1,7 @@
 package ru.petrutik.smartbuy.requestservice.model;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -19,18 +20,6 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private Long chatId;
-    @OneToMany
-    @JoinTable(name = "users_requests",
-            joinColumns = @JoinColumn(
-                    name = "user_id",
-                    referencedColumnName = "id"
-            ),
-            inverseJoinColumns = @JoinColumn(
-                    name = "request_id",
-                    referencedColumnName = "id"
-            )
-    )
-    private List<Request> requests = new ArrayList<>();
 
     public Long getId() {
         return id;
@@ -46,14 +35,6 @@ public class User {
 
     public void setChatId(Long chatId) {
         this.chatId = chatId;
-    }
-
-    public List<Request> getRequests() {
-        return requests;
-    }
-
-    public void setRequests(List<Request> requests) {
-        this.requests = requests;
     }
 
     @Override
