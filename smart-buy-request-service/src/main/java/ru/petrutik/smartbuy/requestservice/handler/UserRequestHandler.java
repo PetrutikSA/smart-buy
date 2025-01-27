@@ -7,6 +7,7 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 import ru.petrutik.smartbuy.event.request.AddRequestEvent;
 import ru.petrutik.smartbuy.event.request.ListAllRequestsEvent;
+import ru.petrutik.smartbuy.event.request.ShowRequestEvent;
 import ru.petrutik.smartbuy.event.request.UserRegisterEvent;
 import ru.petrutik.smartbuy.requestservice.service.RequestService;
 import ru.petrutik.smartbuy.requestservice.service.UserService;
@@ -44,4 +45,9 @@ public class UserRequestHandler {
         requestService.getAllRequests(listAllRequestsEvent.getChatId());
     }
 
+    @KafkaHandler
+    public void handleShowRequestEvent(ShowRequestEvent showRequestEvent) {
+        logger.info("Received show request event, chat id = {}", showRequestEvent.getChatId());
+        requestService.showRequest(showRequestEvent.getChatId(), showRequestEvent.getRequestNumber());
+    }
 }

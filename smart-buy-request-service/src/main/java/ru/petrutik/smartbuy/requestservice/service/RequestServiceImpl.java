@@ -6,34 +6,45 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Service;
+import ru.petrutik.smartbuy.event.dto.ProductDto;
 import ru.petrutik.smartbuy.event.dto.RequestDto;
+import ru.petrutik.smartbuy.event.response.ExceptionResponseEvent;
 import ru.petrutik.smartbuy.event.response.ListAllResponseEvent;
+import ru.petrutik.smartbuy.event.response.ShowResponseEvent;
+import ru.petrutik.smartbuy.requestservice.dto.mapper.ProductMapper;
 import ru.petrutik.smartbuy.requestservice.dto.mapper.RequestMapper;
+import ru.petrutik.smartbuy.requestservice.model.Product;
 import ru.petrutik.smartbuy.requestservice.model.Request;
 import ru.petrutik.smartbuy.requestservice.model.User;
+import ru.petrutik.smartbuy.requestservice.repository.ProductRepository;
 import ru.petrutik.smartbuy.requestservice.repository.RequestRepository;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 @Service
 public class RequestServiceImpl implements RequestService {
     private final UserService userService;
     private final RequestRepository requestRepository;
+    private final ProductRepository productRepository;
     private final RequestMapper requestMapper;
+    private final ProductMapper productMapper;
     private final KafkaTemplate<Long, Object> kafkaTemplate;
     private final String responseTopicName;
     private final Logger logger;
 
     public RequestServiceImpl(UserService userService,
-                              RequestRepository requestRepository,
-                              RequestMapper requestMapper,
+                              RequestRepository requestRepository, ProductRepository productRepository,
+                              RequestMapper requestMapper, ProductMapper productMapper,
                               KafkaTemplate<Long, Object> kafkaTemplate,
                               @Value("#{@kafkaConfig.getResponseTopicName()}") String responseTopicName) {
         this.userService = userService;
         this.requestRepository = requestRepository;
+        this.productRepository = productRepository;
         this.requestMapper = requestMapper;
+        this.productMapper = productMapper;
         this.kafkaTemplate = kafkaTemplate;
         this.responseTopicName = responseTopicName;
         this.logger = LoggerFactory.getLogger(RequestServiceImpl.class);
@@ -69,8 +80,26 @@ public class RequestServiceImpl implements RequestService {
     }
 
     @Override
-    public void getRequest() {
-
+    public void showRequest(Long chatId, Integer requestNumber) {
+        User user = userService.getUserByChatId(chatId);
+        logger.info("Getting user's request with number {}, user: {}", requestNumber, user);
+        Optional<Request> requestOptional = requestRepository.findByUserIdAndRequestNumber(user.getId(), requestNumber);
+        if (requestOptional.isPresent()) {
+            Request request = requestOptional.get();
+            logger.info("Getting request's products, request {}, user: {}", request, user);
+            List<Product> products = productRepository.findAllByRequestIdAndIsBanned(request.getId(), false);
+            logger.info("Got request's product list: {}", products);
+            List<ProductDto> productsDto = products.stream()
+                    .map(productMapper::productToProductDto)
+                    .toList();
+            ShowResponseEvent showResponseEvent = new ShowResponseEvent(chatId, request.getSearchQuery(), productsDto);
+            sendToKafkaTopic(chatId, showResponseEvent);
+        } else {
+            logger.error("Request with number {} not found, user {}", requestNumber, user);
+            String message = "Не удалось получить информацию по поисковому запросу с номером " + requestNumber;
+            ExceptionResponseEvent exceptionResponseEvent = new ExceptionResponseEvent(chatId, message);
+            sendToKafkaTopic(chatId, exceptionResponseEvent);
+        }
     }
 
     @Override
