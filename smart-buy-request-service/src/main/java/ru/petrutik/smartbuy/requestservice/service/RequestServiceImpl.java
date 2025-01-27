@@ -58,7 +58,8 @@ public class RequestServiceImpl implements RequestService {
         User user = userService.getUserByChatId(chatId);
         Request request = new Request();
         request.setSearchQuery(searchQuery);
-        request.setMaxPrice(BigDecimal.valueOf(maxPrice));
+        BigDecimal maxValue = (maxPrice == null) ? null : BigDecimal.valueOf(maxPrice);
+        request.setMaxPrice(maxValue);
         request.setUser(user);
         request.setUpdated(false);
         logger.info("New request created: {}", request);
@@ -123,7 +124,8 @@ public class RequestServiceImpl implements RequestService {
     public void removeAllRequest(Long chatId) {
         User user = userService.getUserByChatId(chatId);
         logger.info("Removing all requests of user {}", user);
-        requestRepository.deleteAllByUserId(user.getId());
+        List<Request> requests = requestRepository.findAllByUserId(user.getId());
+        requestRepository.deleteAll(requests);
         RemoveAllResponseEvent removeAllResponseEvent = new RemoveAllResponseEvent(chatId);
         sendToKafkaTopic(chatId, removeAllResponseEvent);
     }

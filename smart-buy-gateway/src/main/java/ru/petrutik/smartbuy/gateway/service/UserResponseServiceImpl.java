@@ -30,20 +30,26 @@ public class UserResponseServiceImpl implements UserResponseService {
 
     @Override
     public void listAllResponse(Long chatId, List<RequestDto> requests) {
-        StringBuilder responseTextBuilder = new StringBuilder();
-        for (RequestDto requestDto : requests) {
-            responseTextBuilder.append(requestDto.getRequestNumber());
-            responseTextBuilder.append(".) ");
-            responseTextBuilder.append(requestDto.getSearchQuery());
-            BigDecimal maxPrice = requestDto.getMaxPrice();
-            if (maxPrice != null) {
-                responseTextBuilder.append(" - цена не более: ");
-                responseTextBuilder.append(maxPrice);
+        String message;
+        if (requests.isEmpty()) {
+            message = "У вас нет ни одного сохраненного запроса";
+        } else {
+            StringBuilder responseTextBuilder = new StringBuilder();
+            for (RequestDto requestDto : requests) {
+                responseTextBuilder.append(requestDto.getRequestNumber());
+                responseTextBuilder.append(".) ");
+                responseTextBuilder.append(requestDto.getSearchQuery());
+                BigDecimal maxPrice = requestDto.getMaxPrice();
+                if (maxPrice != null) {
+                    responseTextBuilder.append(" - цена не более: ");
+                    responseTextBuilder.append(maxPrice);
+                }
+                responseTextBuilder.append("\n");
             }
-            responseTextBuilder.append("\n");
+            message = responseTextBuilder.toString();
         }
-        bot.sendText(chatId, responseTextBuilder.toString());
-        if (conversationService.checkConversationStatus(chatId) == ConversationStatus.LIST)
+        bot.sendText(chatId, message);
+        if (conversationService.checkConversationStatus(chatId) == ConversationStatus.LIST || requests.isEmpty())
             conversationService.makeConversationStatusNew(chatId);
     }
 
