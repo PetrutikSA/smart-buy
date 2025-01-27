@@ -10,6 +10,7 @@ import ru.petrutik.smartbuy.event.dto.ProductDto;
 import ru.petrutik.smartbuy.event.dto.RequestDto;
 import ru.petrutik.smartbuy.event.response.ExceptionResponseEvent;
 import ru.petrutik.smartbuy.event.response.ListAllResponseEvent;
+import ru.petrutik.smartbuy.event.response.RemoveResponseEvent;
 import ru.petrutik.smartbuy.event.response.ShowResponseEvent;
 import ru.petrutik.smartbuy.requestservice.dto.mapper.ProductMapper;
 import ru.petrutik.smartbuy.requestservice.dto.mapper.RequestMapper;
@@ -81,12 +82,9 @@ public class RequestServiceImpl implements RequestService {
 
     @Override
     public void showRequest(Long chatId, Integer requestNumber) {
-        User user = userService.getUserByChatId(chatId);
-        logger.info("Getting user's request with number {}, user: {}", requestNumber, user);
-        Optional<Request> requestOptional = requestRepository.findByUserIdAndRequestNumber(user.getId(), requestNumber);
-        if (requestOptional.isPresent()) {
-            Request request = requestOptional.get();
-            logger.info("Getting request's products, request {}, user: {}", request, user);
+        Request request = getRequestByChatIdAndNumber(chatId, requestNumber);
+        if (request != null) {
+            logger.info("Getting request's products, request {}", request);
             List<Product> products = productRepository.findAllByRequestIdAndIsBanned(request.getId(), false);
             logger.info("Got request's product list: {}", products);
             List<ProductDto> productsDto = products.stream()
@@ -94,22 +92,38 @@ public class RequestServiceImpl implements RequestService {
                     .toList();
             ShowResponseEvent showResponseEvent = new ShowResponseEvent(chatId, request.getSearchQuery(), productsDto);
             sendToKafkaTopic(chatId, showResponseEvent);
-        } else {
-            logger.error("Request with number {} not found, user {}", requestNumber, user);
-            String message = "Не удалось получить информацию по поисковому запросу с номером " + requestNumber;
-            ExceptionResponseEvent exceptionResponseEvent = new ExceptionResponseEvent(chatId, message);
-            sendToKafkaTopic(chatId, exceptionResponseEvent);
         }
     }
 
     @Override
-    public void deleteRequest() {
-
+    public void removeRequest(Long chatId, Integer requestNumber) {
+        Request request = getRequestByChatIdAndNumber(chatId, requestNumber);
+        if (request != null) {
+            logger.info("Removing request {}", request);
+            requestRepository.delete(request);
+            RemoveResponseEvent removeResponseEvent = new RemoveResponseEvent(chatId, requestNumber);
+            sendToKafkaTopic(chatId, removeResponseEvent);
+        }
     }
 
     @Override
     public void deleteAllRequest() {
 
+    }
+
+    private Request getRequestByChatIdAndNumber(Long chatId, Integer requestNumber) {
+        User user = userService.getUserByChatId(chatId);
+        logger.info("Getting user's request with number {}, user: {}", requestNumber, user);
+        Optional<Request> requestOptional = requestRepository.findByUserIdAndRequestNumber(user.getId(), requestNumber);
+        if (requestOptional.isPresent()) {
+            return requestOptional.get();
+        } else {
+            logger.error("Request with number {} not found, user {}", requestNumber, user);
+            String message = "Не удалось получить информацию по поисковому запросу с номером " + requestNumber;
+            ExceptionResponseEvent exceptionResponseEvent = new ExceptionResponseEvent(chatId, message);
+            sendToKafkaTopic(chatId, exceptionResponseEvent);
+            return null;
+        }
     }
 
     private void sendToKafkaTopic(Long key, Object value) {

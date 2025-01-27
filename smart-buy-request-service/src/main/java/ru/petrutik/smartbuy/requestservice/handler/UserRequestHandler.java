@@ -7,6 +7,7 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 import ru.petrutik.smartbuy.event.request.AddRequestEvent;
 import ru.petrutik.smartbuy.event.request.ListAllRequestsEvent;
+import ru.petrutik.smartbuy.event.request.RemoveRequestEvent;
 import ru.petrutik.smartbuy.event.request.ShowRequestEvent;
 import ru.petrutik.smartbuy.event.request.UserRegisterEvent;
 import ru.petrutik.smartbuy.requestservice.service.RequestService;
@@ -49,5 +50,11 @@ public class UserRequestHandler {
     public void handleShowRequestEvent(ShowRequestEvent showRequestEvent) {
         logger.info("Received show request event, chat id = {}", showRequestEvent.getChatId());
         requestService.showRequest(showRequestEvent.getChatId(), showRequestEvent.getRequestNumber());
+    }
+
+    @KafkaHandler
+    public void handleRemoveRequestEvent(RemoveRequestEvent removeRequestEvent) {
+        logger.info("Received remove request event, chat id = {}", removeRequestEvent.getChatId());
+        requestService.removeRequest(removeRequestEvent.getChatId(), removeRequestEvent.getRequestNumber());
     }
 }
