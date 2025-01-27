@@ -74,7 +74,12 @@ public class UserResponseServiceImpl implements UserResponseService {
 
     @Override
     public void removeResponse(Long chatId, Integer requestNumber, Integer remainRequestsCount) {
-
+        String message = "Удален поисковый запрос под номером - " + requestNumber;
+        bot.sendText(chatId, message);
+        Conversation conversation = conversationService.getConversationOrRegisterNew(chatId);
+        conversation.setRequestAdded(remainRequestsCount);
+        conversation.setStatus(ConversationStatus.NEW);
+        conversationService.updateConversation(conversation);
     }
 
     @Override
