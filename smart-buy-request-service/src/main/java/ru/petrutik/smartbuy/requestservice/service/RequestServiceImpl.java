@@ -8,6 +8,7 @@ import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Service;
 import ru.petrutik.smartbuy.event.dto.ProductDto;
 import ru.petrutik.smartbuy.event.dto.RequestDto;
+import ru.petrutik.smartbuy.event.response.AddResponseEvent;
 import ru.petrutik.smartbuy.event.response.ExceptionResponseEvent;
 import ru.petrutik.smartbuy.event.response.ListAllResponseEvent;
 import ru.petrutik.smartbuy.event.response.RemoveAllResponseEvent;
@@ -65,6 +66,8 @@ public class RequestServiceImpl implements RequestService {
         request.setRequestNumber(userRequests.size() + 1);
         requestRepository.save(request);
         logger.info("Request saved to DB: {}", request);
+        AddResponseEvent addResponseEvent = new AddResponseEvent(chatId, userRequests.size() + 1);
+        sendToKafkaTopic(chatId, addResponseEvent);
     }
 
     @Override
@@ -98,11 +101,20 @@ public class RequestServiceImpl implements RequestService {
 
     @Override
     public void removeRequest(Long chatId, Integer requestNumber) {
+        User user = userService.getUserByChatId(chatId);
         Request request = getRequestByChatIdAndNumber(chatId, requestNumber);
         if (request != null) {
             logger.info("Removing request {}", request);
             requestRepository.delete(request);
-            RemoveResponseEvent removeResponseEvent = new RemoveResponseEvent(chatId, requestNumber);
+            logger.info("Getting all remain requests of user {}", user);
+            List<Request> requests = requestRepository.findAllByUserId(user.getId());
+            for (Request remainRequest : requests) {
+                Integer remainRequestNumber = remainRequest.getRequestNumber();
+                if (remainRequestNumber > requestNumber) remainRequest.setRequestNumber(remainRequestNumber - 1);
+            }
+            logger.info("Updating all remain requests with new request numbers of user {}", user);
+            requestRepository.saveAll(requests);
+            RemoveResponseEvent removeResponseEvent = new RemoveResponseEvent(chatId, requestNumber, requests.size());
             sendToKafkaTopic(chatId, removeResponseEvent);
         }
     }
