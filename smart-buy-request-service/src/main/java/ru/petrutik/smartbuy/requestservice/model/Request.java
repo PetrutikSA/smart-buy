@@ -27,30 +27,6 @@ public class Request {
     @JoinColumn(name = "user_id")
     private User user;
     private boolean isUpdated;
-    @OneToMany
-    @JoinTable(name = "requests_results",
-            joinColumns = @JoinColumn(
-                    name = "request_id",
-                    referencedColumnName = "id"
-            ),
-            inverseJoinColumns = @JoinColumn(
-                    name = "product_id",
-                    referencedColumnName = "id"
-            )
-    )
-    private List<Product> result = new ArrayList<>();
-    @OneToMany
-    @JoinTable(name = "requests_bans",
-            joinColumns = @JoinColumn(
-                    name = "request_id",
-                    referencedColumnName = "id"
-            ),
-            inverseJoinColumns = @JoinColumn(
-                    name = "product_id",
-                    referencedColumnName = "id"
-            )
-    )
-    private List<Product> banned = new ArrayList<>();
 
     public Long getId() {
         return id;
@@ -98,22 +74,6 @@ public class Request {
 
     public void setUpdated(boolean updated) {
         isUpdated = updated;
-    }
-
-    public List<Product> getResult() {
-        return result;
-    }
-
-    public void setResult(List<Product> result) {
-        this.result = result;
-    }
-
-    public List<Product> getBanned() {
-        return banned;
-    }
-
-    public void setBanned(List<Product> banned) {
-        this.banned = banned;
     }
 
     @Override
