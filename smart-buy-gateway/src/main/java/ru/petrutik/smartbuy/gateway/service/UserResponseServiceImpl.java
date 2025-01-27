@@ -94,6 +94,7 @@ public class UserResponseServiceImpl implements UserResponseService {
 
     @Override
     public void exceptionResponse(Long chatId, String message) {
-
+        bot.sendText(chatId, message);
+        conversationService.makeConversationStatusNew(chatId);
     }
 }

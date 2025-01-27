@@ -6,6 +6,7 @@ import org.springframework.kafka.annotation.KafkaHandler;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 import ru.petrutik.smartbuy.event.response.AddResponseEvent;
+import ru.petrutik.smartbuy.event.response.ExceptionResponseEvent;
 import ru.petrutik.smartbuy.event.response.ListAllResponseEvent;
 
 import ru.petrutik.smartbuy.event.response.RemoveAllResponseEvent;
@@ -55,6 +56,12 @@ public class UserResponseHandler {
     public void handleRemoveAllResponseEvent(RemoveAllResponseEvent removeAllResponseEvent) {
         logEventReceiving(removeAllResponseEvent.getClass().getName(), removeAllResponseEvent.getChatId());
         userResponseService.removeAllResponse(removeAllResponseEvent.getChatId());
+    }
+
+    @KafkaHandler
+    public void handleExceptionResponseEvent(ExceptionResponseEvent exceptionResponseEvent) {
+        logEventReceiving(exceptionResponseEvent.getClass().getName(), exceptionResponseEvent.getChatId());
+        userResponseService.exceptionResponse(exceptionResponseEvent.getChatId(), exceptionResponseEvent.getMessage());
     }
 
     private void logEventReceiving(String eventClassName, Long chatId) {

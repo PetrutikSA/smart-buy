@@ -127,7 +127,7 @@ public class SmartBuyBot extends TelegramLongPollingBot {
             return;
         }
         sendText(chatId, "Загружается список всех действующих запросов");
-        userRequestService.listOfAllRequests(chatId, conversationStatus); //TODO in handler make status new
+        userRequestService.listOfAllRequests(chatId, conversationStatus);
     }
 
     private void showCommandReceived(Long chatId, ConversationStatus conversationStatus, String clientMessage) {
@@ -141,7 +141,7 @@ public class SmartBuyBot extends TelegramLongPollingBot {
                 Optional<Integer> optionalRequestNumber = parseRequestNumber(chatId, clientMessage);
                 if (optionalRequestNumber.isPresent()) {
                     sendText(chatId, "Информация по запросу:");
-                    userRequestService.showRequest(chatId, optionalRequestNumber.get()); //TODO in handler make status new
+                    userRequestService.showRequest(chatId, optionalRequestNumber.get());
                 }
             }
             case SHOW2 -> sendText(chatId, operationInProcess);
@@ -158,7 +158,7 @@ public class SmartBuyBot extends TelegramLongPollingBot {
                 Optional<Integer> optionalRequestNumber = parseRequestNumber(chatId, clientMessage);
                 if (optionalRequestNumber.isPresent()) {
                     userRequestService.removeRequest(chatId, optionalRequestNumber.get());
-                    sendText(chatId, "Запрос удален"); //TODO in handler make status new, change requestsAdded
+                    sendText(chatId, "Запрос удален");
                 }
             }
             case DELETE2 -> sendText(chatId, operationInProcess);
@@ -189,7 +189,7 @@ public class SmartBuyBot extends TelegramLongPollingBot {
             case DELETE_ALL1 -> {
                 if (clientMessage.equalsIgnoreCase("да")) {
                     userRequestService.removeAll(chatId, conversationStatus);
-                    sendText(chatId, "Все запросы удалены"); //TODO in handler make status new, change requestsAdded
+                    sendText(chatId, "Все запросы удалены");
                 } else {
                     conversationService.makeConversationStatusNew(chatId);
                     sendText(chatId, "Подтверждение не получено, операция отменена");
