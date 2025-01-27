@@ -126,7 +126,7 @@ public class SmartBuyBot extends TelegramLongPollingBot {
             sendText(chatId, operationInProcess);
             return;
         }
-        sendText(chatId, "Список всех действующих запросов");
+        sendText(chatId, "Загружается список всех действующих запросов");
         userRequestService.listOfAllRequests(chatId, conversationStatus); //TODO in handler make status new
     }
 

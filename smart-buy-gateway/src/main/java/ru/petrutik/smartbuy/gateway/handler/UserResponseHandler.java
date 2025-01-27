@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.kafka.annotation.KafkaHandler;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
+import ru.petrutik.smartbuy.event.response.AddResponseEvent;
 import ru.petrutik.smartbuy.event.response.ListAllResponseEvent;
 
 import ru.petrutik.smartbuy.gateway.service.UserResponseService;
@@ -19,6 +20,12 @@ public class UserResponseHandler {
     public UserResponseHandler(UserResponseService userResponseService) {
         this.userResponseService = userResponseService;
         logger = LoggerFactory.getLogger(UserResponseServiceImpl.class);
+    }
+
+    @KafkaHandler
+    public void handleAddResponseEvent(AddResponseEvent addResponseEvent) {
+        logger.info("Received add response event, chat id = {}", addResponseEvent.getChatId());
+        userResponseService.updateRequestCount(addResponseEvent.getChatId(), addResponseEvent.getRemainRequestsCount());
     }
 
     @KafkaHandler

@@ -3,6 +3,7 @@ package ru.petrutik.smartbuy.gateway.service;
 import org.springframework.stereotype.Service;
 import ru.petrutik.smartbuy.event.dto.ProductDto;
 import ru.petrutik.smartbuy.event.dto.RequestDto;
+import ru.petrutik.smartbuy.gateway.model.Conversation;
 import ru.petrutik.smartbuy.gateway.model.ConversationStatus;
 
 import java.math.BigDecimal;
@@ -16,6 +17,15 @@ public class UserResponseServiceImpl implements UserResponseService {
     public UserResponseServiceImpl(SmartBuyBot bot, ConversationService conversationService) {
         this.bot = bot;
         this.conversationService = conversationService;
+    }
+
+    @Override
+    public void updateRequestCount(Long chatId, Integer requestCount) {
+        Conversation conversation = conversationService.getConversationOrRegisterNew(chatId);
+        if (conversation.getRequestAdded() != requestCount) {
+            conversation.setRequestAdded(requestCount);
+            conversationService.updateConversation(conversation);
+        }
     }
 
     @Override
@@ -39,11 +49,6 @@ public class UserResponseServiceImpl implements UserResponseService {
 
     @Override
     public void showResponse(Long chatId, String requestQuery, List<ProductDto> products) {
-
-    }
-
-    @Override
-    public void updateRequestCount(Long chatId, Integer requestCount) {
 
     }
 
