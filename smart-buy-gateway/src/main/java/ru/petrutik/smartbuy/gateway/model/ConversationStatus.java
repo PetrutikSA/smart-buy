@@ -1,6 +1,7 @@
 package ru.petrutik.smartbuy.gateway.model;
 
 public enum ConversationStatus {
+    CREATED,
     NEW,
     ADD0,
     ADD1,

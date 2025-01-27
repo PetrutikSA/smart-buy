@@ -24,15 +24,17 @@ import java.util.Optional;
 public class SmartBuyBot extends TelegramLongPollingBot {
     private final String botName;
     private final UserRequestService userRequestService;
+    private final ConversationService conversationService;
     private final Logger logger;
     private final AppConfig appConfig;
     private final String operationInProcess = "Ваш запрос обрабатывается, пожалуйста, подождите";
 
     public SmartBuyBot(@Value("${smartbuy.bot.name}") String botName, @Value("${smartbuy.bot.token}") String botToken,
-                       UserRequestService userRequestService, AppConfig appConfig) {
+                       UserRequestService userRequestService, ConversationService conversationService, AppConfig appConfig) {
         super(botToken);
         this.botName = botName;
         this.userRequestService = userRequestService;
+        this.conversationService = conversationService;
         this.appConfig = appConfig;
         logger = LoggerFactory.getLogger(SmartBuyBot.class);
         List<BotCommand> listOfCommands = new ArrayList<>();
@@ -66,7 +68,7 @@ public class SmartBuyBot extends TelegramLongPollingBot {
                     case "/remove" -> removeCommandReceived(chatId, ConversationStatus.DELETE0, textMessage);
                     case "/remove_all" -> removeAllCommandReceived(chatId, ConversationStatus.DELETE_ALL0, textMessage);
                     default -> {
-                        ConversationStatus conversationStatus = userRequestService.checkConversationStatus(chatId);
+                        ConversationStatus conversationStatus = conversationService.checkConversationStatus(chatId);
                         switch (conversationStatus) {
                             case ADD1, ADD2 -> addCommandReceived(chatId, conversationStatus, textMessage);
                             case SHOW1, SHOW2 -> showCommandReceived(chatId, conversationStatus, textMessage);
@@ -94,7 +96,7 @@ public class SmartBuyBot extends TelegramLongPollingBot {
     private void addCommandReceived(Long chatId, ConversationStatus conversationStatus, String clientMessage) {
         switch (conversationStatus) {
             case ADD0 -> {
-                if (userRequestService.isRequestLimitReached(chatId)) {
+                if (conversationService.isRequestLimitReached(chatId)) {
                     sendText(chatId, "К сожаление достигнут лимит запросов :(");
                     sendText(chatId, "Для добавления нового запроса, пожалуйста, удалите один из существующих");
                     return;
@@ -119,7 +121,7 @@ public class SmartBuyBot extends TelegramLongPollingBot {
     }
 
     private void listAllRequests(Long chatId, ConversationStatus conversationStatus) {
-        ConversationStatus status = userRequestService.checkConversationStatus(chatId);
+        ConversationStatus status = conversationService.checkConversationStatus(chatId);
         if (status == conversationStatus) {
             sendText(chatId, operationInProcess);
             return;
@@ -189,7 +191,7 @@ public class SmartBuyBot extends TelegramLongPollingBot {
                     userRequestService.removeAll(chatId, conversationStatus);
                     sendText(chatId, "Все запросы удалены"); //TODO in handler make status new, change requestsAdded
                 } else {
-                    userRequestService.makeConversationStatusNew(chatId);
+                    conversationService.makeConversationStatusNew(chatId);
                     sendText(chatId, "Подтверждение не получено, операция отменена");
                 }
             }
