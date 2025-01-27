@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 import ru.petrutik.smartbuy.event.response.AddResponseEvent;
 import ru.petrutik.smartbuy.event.response.ListAllResponseEvent;
 
+import ru.petrutik.smartbuy.event.response.ShowResponseEvent;
 import ru.petrutik.smartbuy.gateway.service.UserResponseService;
 import ru.petrutik.smartbuy.gateway.service.UserResponseServiceImpl;
 
@@ -24,13 +25,24 @@ public class UserResponseHandler {
 
     @KafkaHandler
     public void handleAddResponseEvent(AddResponseEvent addResponseEvent) {
-        logger.info("Received add response event, chat id = {}", addResponseEvent.getChatId());
+        logEventReceiving(addResponseEvent.getClass().getName(), addResponseEvent.getChatId());
         userResponseService.updateRequestCount(addResponseEvent.getChatId(), addResponseEvent.getRemainRequestsCount());
     }
 
     @KafkaHandler
     public void handleListAllResponseEvent(ListAllResponseEvent listAllResponseEvent) {
-        logger.info("Received list all response event, chat id = {}", listAllResponseEvent.getChatId());
+        logEventReceiving(listAllResponseEvent.getClass().getName(), listAllResponseEvent.getChatId());
         userResponseService.listAllResponse(listAllResponseEvent.getChatId(), listAllResponseEvent.getRequests());
+    }
+
+    @KafkaHandler
+    public void handleShowResponseEvent(ShowResponseEvent showResponseEvent) {
+        logEventReceiving(showResponseEvent.getClass().getName(), showResponseEvent.getChatId());
+        userResponseService.showResponse(showResponseEvent.getChatId(), showResponseEvent.getRequestQuery(),
+                showResponseEvent.getProducts());
+    }
+
+    private void logEventReceiving(String eventClassName, Long chatId) {
+        logger.info("Received {}, chat id = {}", eventClassName, chatId);
     }
 }

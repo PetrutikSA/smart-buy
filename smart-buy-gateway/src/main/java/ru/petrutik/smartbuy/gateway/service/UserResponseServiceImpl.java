@@ -49,7 +49,27 @@ public class UserResponseServiceImpl implements UserResponseService {
 
     @Override
     public void showResponse(Long chatId, String requestQuery, List<ProductDto> products) {
-
+        String message;
+        if (products.isEmpty()) {
+            message = "К сожалению по данному запросу пока нет результатов :(";
+        } else {
+            StringBuilder responseTextBuilder = new StringBuilder();
+            responseTextBuilder.append("По запросу \" ");
+            responseTextBuilder.append(requestQuery);
+            responseTextBuilder.append("\" найдено:\n");
+            for (ProductDto productDto : products) {
+                responseTextBuilder.append("---------------\n");
+                responseTextBuilder.append("Стоимость: ");
+                responseTextBuilder.append(productDto.getPrice());
+                responseTextBuilder.append(" руб.\n");
+                responseTextBuilder.append("Ссылка: ");
+                responseTextBuilder.append(productDto.getUrl());
+                responseTextBuilder.append("\n");
+            }
+            message = responseTextBuilder.toString();
+        }
+        bot.sendText(chatId, message);
+        conversationService.makeConversationStatusNew(chatId);
     }
 
     @Override
