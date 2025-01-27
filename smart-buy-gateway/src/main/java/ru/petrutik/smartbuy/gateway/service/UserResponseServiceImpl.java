@@ -84,7 +84,12 @@ public class UserResponseServiceImpl implements UserResponseService {
 
     @Override
     public void removeAllResponse(Long chatId) {
-
+        String message = "Все поисковые запросы были удалены";
+        bot.sendText(chatId, message);
+        Conversation conversation = conversationService.getConversationOrRegisterNew(chatId);
+        conversation.setRequestAdded(0);
+        conversation.setStatus(ConversationStatus.NEW);
+        conversationService.updateConversation(conversation);
     }
 
     @Override

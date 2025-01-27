@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 import ru.petrutik.smartbuy.event.response.AddResponseEvent;
 import ru.petrutik.smartbuy.event.response.ListAllResponseEvent;
 
+import ru.petrutik.smartbuy.event.response.RemoveAllResponseEvent;
 import ru.petrutik.smartbuy.event.response.RemoveResponseEvent;
 import ru.petrutik.smartbuy.event.response.ShowResponseEvent;
 import ru.petrutik.smartbuy.gateway.service.UserResponseService;
@@ -48,6 +49,12 @@ public class UserResponseHandler {
         logEventReceiving(removeResponseEvent.getClass().getName(), removeResponseEvent.getChatId());
         userResponseService.removeResponse(removeResponseEvent.getChatId(), removeResponseEvent.getRequestNumber(),
                 removeResponseEvent.getRemainRequestsCount());
+    }
+
+    @KafkaHandler
+    public void handleRemoveAllResponseEvent(RemoveAllResponseEvent removeAllResponseEvent) {
+        logEventReceiving(removeAllResponseEvent.getClass().getName(), removeAllResponseEvent.getChatId());
+        userResponseService.removeAllResponse(removeAllResponseEvent.getChatId());
     }
 
     private void logEventReceiving(String eventClassName, Long chatId) {
