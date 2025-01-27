@@ -10,4 +10,6 @@ public interface RequestRepository extends JpaRepository<Request, Long> {
     List<Request> findAllByUserId(Long userId);
 
     Optional<Request> findByUserIdAndRequestNumber(Long userId, Integer requestNumber);
+
+    void deleteAllByUserId(Long userId);
 }

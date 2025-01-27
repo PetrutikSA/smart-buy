@@ -9,5 +9,5 @@ public interface RequestService {
 
     void removeRequest(Long chatId, Integer requestNumber);
 
-    void deleteAllRequest();
+    void removeAllRequest(Long chatId);
 }

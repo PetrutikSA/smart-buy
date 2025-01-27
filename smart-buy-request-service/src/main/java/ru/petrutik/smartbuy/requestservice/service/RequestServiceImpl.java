@@ -10,6 +10,7 @@ import ru.petrutik.smartbuy.event.dto.ProductDto;
 import ru.petrutik.smartbuy.event.dto.RequestDto;
 import ru.petrutik.smartbuy.event.response.ExceptionResponseEvent;
 import ru.petrutik.smartbuy.event.response.ListAllResponseEvent;
+import ru.petrutik.smartbuy.event.response.RemoveAllResponseEvent;
 import ru.petrutik.smartbuy.event.response.RemoveResponseEvent;
 import ru.petrutik.smartbuy.event.response.ShowResponseEvent;
 import ru.petrutik.smartbuy.requestservice.dto.mapper.ProductMapper;
@@ -107,8 +108,12 @@ public class RequestServiceImpl implements RequestService {
     }
 
     @Override
-    public void deleteAllRequest() {
-
+    public void removeAllRequest(Long chatId) {
+        User user = userService.getUserByChatId(chatId);
+        logger.info("Removing all requests of user {}", user);
+        requestRepository.deleteAllByUserId(user.getId());
+        RemoveAllResponseEvent removeAllResponseEvent = new RemoveAllResponseEvent(chatId);
+        sendToKafkaTopic(chatId, removeAllResponseEvent);
     }
 
     private Request getRequestByChatIdAndNumber(Long chatId, Integer requestNumber) {
