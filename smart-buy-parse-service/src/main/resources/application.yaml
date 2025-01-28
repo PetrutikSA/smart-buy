@@ -17,6 +17,6 @@ smartbuy:
   kafka:
     topic:
       name:
-        user:
+        parse:
           request: parse-request-topic
           response: parse-response-topic

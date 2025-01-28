@@ -1,0 +1,18 @@
+services:
+  smart-buy-parse-service:
+    build: ./
+    image: smart-buy-parse-service
+    container_name: smart-buy-parse-service
+    ports:
+      - "8100:8100"
+    environment:
+      - KAFKA_BOOTSTRAP_SERVERS=kafka-1:9090,kafka-2:9090
+    networks:
+      - kafka
+      - parse
+
+networks:
+  kafka:
+    external: true
+    name: smartbuy-kafka
+  parse:
