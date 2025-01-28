@@ -1,13 +1,13 @@
-package ru.petrutik.smartbuy.event.request;
+package ru.petrutik.smartbuy.event.user.request;
 
-public class ShowRequestEvent {
+public class RemoveRequestEvent {
     private Long chatId;
     private Integer requestNumber;
 
-    public ShowRequestEvent() {
+    public RemoveRequestEvent() {
     }
 
-    public ShowRequestEvent(Long chatId, Integer requestNumber) {
+    public RemoveRequestEvent(Long chatId, Integer requestNumber) {
         this.chatId = chatId;
         this.requestNumber = requestNumber;
     }

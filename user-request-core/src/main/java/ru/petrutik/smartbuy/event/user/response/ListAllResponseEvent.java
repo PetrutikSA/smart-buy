@@ -1,4 +1,4 @@
-package ru.petrutik.smartbuy.event.response;
+package ru.petrutik.smartbuy.event.user.response;
 
 import ru.petrutik.smartbuy.event.dto.RequestDto;
 

@@ -5,13 +5,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.kafka.annotation.KafkaHandler;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
-import ru.petrutik.smartbuy.event.response.AddResponseEvent;
-import ru.petrutik.smartbuy.event.response.ExceptionResponseEvent;
-import ru.petrutik.smartbuy.event.response.ListAllResponseEvent;
+import ru.petrutik.smartbuy.event.user.response.AddResponseEvent;
+import ru.petrutik.smartbuy.event.user.response.ExceptionResponseEvent;
+import ru.petrutik.smartbuy.event.user.response.ListAllResponseEvent;
 
-import ru.petrutik.smartbuy.event.response.RemoveAllResponseEvent;
-import ru.petrutik.smartbuy.event.response.RemoveResponseEvent;
-import ru.petrutik.smartbuy.event.response.ShowResponseEvent;
+import ru.petrutik.smartbuy.event.user.response.RemoveAllResponseEvent;
+import ru.petrutik.smartbuy.event.user.response.RemoveResponseEvent;
+import ru.petrutik.smartbuy.event.user.response.ShowResponseEvent;
 import ru.petrutik.smartbuy.gateway.service.UserResponseService;
 import ru.petrutik.smartbuy.gateway.service.UserResponseServiceImpl;
 

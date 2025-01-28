@@ -8,12 +8,13 @@ import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Service;
 import ru.petrutik.smartbuy.event.dto.ProductDto;
 import ru.petrutik.smartbuy.event.dto.RequestDto;
-import ru.petrutik.smartbuy.event.response.AddResponseEvent;
-import ru.petrutik.smartbuy.event.response.ExceptionResponseEvent;
-import ru.petrutik.smartbuy.event.response.ListAllResponseEvent;
-import ru.petrutik.smartbuy.event.response.RemoveAllResponseEvent;
-import ru.petrutik.smartbuy.event.response.RemoveResponseEvent;
-import ru.petrutik.smartbuy.event.response.ShowResponseEvent;
+import ru.petrutik.smartbuy.event.user.response.AddResponseEvent;
+import ru.petrutik.smartbuy.event.user.response.ExceptionResponseEvent;
+import ru.petrutik.smartbuy.event.user.response.ListAllResponseEvent;
+import ru.petrutik.smartbuy.event.user.response.RemoveAllResponseEvent;
+import ru.petrutik.smartbuy.event.user.response.RemoveResponseEvent;
+import ru.petrutik.smartbuy.event.user.response.ShowResponseEvent;
+import ru.petrutik.smartbuy.event.user.response.ShowResultsAfterAddResponseEvent;
 import ru.petrutik.smartbuy.requestservice.dto.mapper.ProductMapper;
 import ru.petrutik.smartbuy.requestservice.dto.mapper.RequestMapper;
 import ru.petrutik.smartbuy.requestservice.model.Product;
@@ -42,7 +43,7 @@ public class RequestServiceImpl implements RequestService {
                               RequestRepository requestRepository, ProductRepository productRepository,
                               RequestMapper requestMapper, ProductMapper productMapper,
                               KafkaTemplate<Long, Object> kafkaTemplate,
-                              @Value("#{@kafkaConfig.getResponseTopicName()}") String responseTopicName) {
+                              @Value("#{@kafkaConfig.getUserResponseTopicName()}") String responseTopicName) {
         this.userService = userService;
         this.requestRepository = requestRepository;
         this.productRepository = productRepository;
@@ -128,6 +129,28 @@ public class RequestServiceImpl implements RequestService {
         requestRepository.deleteAll(requests);
         RemoveAllResponseEvent removeAllResponseEvent = new RemoveAllResponseEvent(chatId);
         sendToKafkaTopic(chatId, removeAllResponseEvent);
+    }
+
+    @Override
+    public void resultParsingAfterAddRequest(Long requestId, List<ProductDto> productsDto) {
+        if (productsDto != null && !productsDto.isEmpty()) {
+            Optional<Request> requestOptional = requestRepository.findById(requestId);
+            if (requestOptional.isPresent()) {
+                Request request = requestOptional.get();
+                List<Product> products = productsDto.stream()
+                        .map(productDto -> productMapper.productDtoToProduct(productDto, request, false))
+                        .toList();
+                productRepository.saveAll(products);
+                Long chatId = request.getUser().getChatId();
+                ShowResultsAfterAddResponseEvent showResultsAfterAddResponseEvent =
+                        new ShowResultsAfterAddResponseEvent(chatId, request.getSearchQuery(), productsDto);
+                sendToKafkaTopic(chatId, showResultsAfterAddResponseEvent);
+            } else {
+                logger.error("Couldn't find request on which got parsing response, requestId = {}", requestId);
+            }
+        } else {
+            logger.debug("After add request parsing didn't find anything, request id = {}", requestId);
+        }
     }
 
     private Request getRequestByChatIdAndNumber(Long chatId, Integer requestNumber) {

@@ -10,7 +10,7 @@ spring:
         spring:
           json:
             trusted:
-              packages: ru.petrutik.smartbuy.parse.request
+              packages: ru.petrutik.smartbuy.event.parse.request
     producer:
       bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
 smartbuy:

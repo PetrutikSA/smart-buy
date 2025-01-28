@@ -6,7 +6,7 @@ import org.springframework.kafka.annotation.KafkaHandler;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 import ru.petrutik.samrtbuy.parseservice.service.ParseService;
-import ru.petrutik.smartbuy.parse.request.AddRequestParseEvent;
+import ru.petrutik.smartbuy.event.parse.request.AddRequestParseEvent;
 
 @Component
 @KafkaListener(topics = "#{@kafkaConfig.getRequestTopicName()}")

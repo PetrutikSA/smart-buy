@@ -7,7 +7,7 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Service;
 import ru.petrutik.smartbuy.event.dto.ProductDto;
-import ru.petrutik.smartbuy.parse.response.AddResponseParseEvent;
+import ru.petrutik.smartbuy.event.parse.response.AddResponseParseEvent;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;

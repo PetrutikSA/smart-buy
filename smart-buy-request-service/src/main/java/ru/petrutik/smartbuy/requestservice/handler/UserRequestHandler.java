@@ -5,17 +5,17 @@ import org.slf4j.LoggerFactory;
 import org.springframework.kafka.annotation.KafkaHandler;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
-import ru.petrutik.smartbuy.event.request.AddRequestEvent;
-import ru.petrutik.smartbuy.event.request.ListAllRequestsEvent;
-import ru.petrutik.smartbuy.event.request.RemoveAllRequestsEvent;
-import ru.petrutik.smartbuy.event.request.RemoveRequestEvent;
-import ru.petrutik.smartbuy.event.request.ShowRequestEvent;
-import ru.petrutik.smartbuy.event.request.UserRegisterEvent;
+import ru.petrutik.smartbuy.event.user.request.AddRequestEvent;
+import ru.petrutik.smartbuy.event.user.request.ListAllRequestsEvent;
+import ru.petrutik.smartbuy.event.user.request.RemoveAllRequestsEvent;
+import ru.petrutik.smartbuy.event.user.request.RemoveRequestEvent;
+import ru.petrutik.smartbuy.event.user.request.ShowRequestEvent;
+import ru.petrutik.smartbuy.event.user.request.UserRegisterEvent;
 import ru.petrutik.smartbuy.requestservice.service.RequestService;
 import ru.petrutik.smartbuy.requestservice.service.UserService;
 
 @Component
-@KafkaListener(topics = "#{@kafkaConfig.getRequestTopicName()}")
+@KafkaListener(topics = "#{@kafkaConfig.getUserRequestTopicName()}")
 public class UserRequestHandler {
     private final UserService userService;
     private final RequestService requestService;

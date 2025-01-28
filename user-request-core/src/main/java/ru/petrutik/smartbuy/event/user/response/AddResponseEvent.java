@@ -1,16 +1,14 @@
-package ru.petrutik.smartbuy.event.response;
+package ru.petrutik.smartbuy.event.user.response;
 
-public class RemoveResponseEvent {
+public class AddResponseEvent {
     private Long chatId;
-    private Integer requestNumber;
     private Integer remainRequestsCount;
 
-    public RemoveResponseEvent() {
+    public AddResponseEvent() {
     }
 
-    public RemoveResponseEvent(Long chatId, Integer requestNumber, Integer remainRequestsCount) {
+    public AddResponseEvent(Long chatId, Integer remainRequestsCount) {
         this.chatId = chatId;
-        this.requestNumber = requestNumber;
         this.remainRequestsCount = remainRequestsCount;
     }
 
@@ -20,14 +18,6 @@ public class RemoveResponseEvent {
 
     public void setChatId(Long chatId) {
         this.chatId = chatId;
-    }
-
-    public Integer getRequestNumber() {
-        return requestNumber;
-    }
-
-    public void setRequestNumber(Integer requestNumber) {
-        this.requestNumber = requestNumber;
     }
 
     public Integer getRemainRequestsCount() {

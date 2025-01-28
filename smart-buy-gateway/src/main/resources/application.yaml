@@ -23,7 +23,7 @@ spring:
         spring:
           json:
             trusted:
-              packages: ru.petrutik.smartbuy.event.response
+              packages: ru.petrutik.smartbuy.event.user.response
   jpa:
     hibernate:
       ddl-auto: none

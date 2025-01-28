@@ -1,4 +1,4 @@
-package ru.petrutik.smartbuy.parse.request;
+package ru.petrutik.smartbuy.event.parse.request;
 
 import java.math.BigDecimal;
 

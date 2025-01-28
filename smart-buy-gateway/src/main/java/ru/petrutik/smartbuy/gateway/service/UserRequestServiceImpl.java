@@ -6,12 +6,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Service;
-import ru.petrutik.smartbuy.event.request.AddRequestEvent;
-import ru.petrutik.smartbuy.event.request.ListAllRequestsEvent;
-import ru.petrutik.smartbuy.event.request.RemoveAllRequestsEvent;
-import ru.petrutik.smartbuy.event.request.RemoveRequestEvent;
-import ru.petrutik.smartbuy.event.request.ShowRequestEvent;
-import ru.petrutik.smartbuy.event.request.UserRegisterEvent;
+import ru.petrutik.smartbuy.event.user.request.AddRequestEvent;
+import ru.petrutik.smartbuy.event.user.request.ListAllRequestsEvent;
+import ru.petrutik.smartbuy.event.user.request.RemoveAllRequestsEvent;
+import ru.petrutik.smartbuy.event.user.request.RemoveRequestEvent;
+import ru.petrutik.smartbuy.event.user.request.ShowRequestEvent;
+import ru.petrutik.smartbuy.event.user.request.UserRegisterEvent;
 import ru.petrutik.smartbuy.gateway.model.Conversation;
 import ru.petrutik.smartbuy.gateway.model.ConversationStatus;
 

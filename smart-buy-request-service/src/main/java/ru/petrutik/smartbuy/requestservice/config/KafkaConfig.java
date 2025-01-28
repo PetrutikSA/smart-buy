@@ -30,29 +30,51 @@ import java.util.Map;
 @Configuration
 public class KafkaConfig {
     @Value("${smartbuy.kafka.topic.name.user.request}")
-    private String requestTopicName;
+    private String userRequestTopicName;
     @Value("${smartbuy.kafka.topic.name.user.response}")
-    private String responseTopicName;
+    private String userResponseTopicName;
+    @Value("${smartbuy.kafka.topic.name.parse.request}")
+    private String parseRequestTopicName;
+    @Value("${smartbuy.kafka.topic.name.parse.response}")
+    private String parseResponseTopicName;
 
-    public String getRequestTopicName() {
-        return requestTopicName;
+    public String getUserRequestTopicName() {
+        return userRequestTopicName;
     }
 
-    public String getResponseTopicName() {
-        return responseTopicName;
+    public String getUserResponseTopicName() {
+        return userResponseTopicName;
+    }
+
+    public String getParseRequestTopicName() {
+        return parseRequestTopicName;
+    }
+
+    public String getParseResponseTopicName() {
+        return parseResponseTopicName;
     }
 
     @Autowired
     private Environment environment;
 
     @Bean
-    public NewTopic createTopic() {
-        return TopicBuilder.name(responseTopicName)
+    public NewTopic createUserResponseTopic() {
+        return TopicBuilder.name(userResponseTopicName)
                 .partitions(3)
                 .replicas(3)
                 .configs(Map.of("min.insync.replicas", "2"))
                 .build();
     }
+
+    @Bean
+    public NewTopic createParseRequestTopic() {
+        return TopicBuilder.name(parseRequestTopicName)
+                .partitions(3)
+                .replicas(3)
+                .configs(Map.of("min.insync.replicas", "2"))
+                .build();
+    }
+
     private Map<String, Object> consumerConfigs() {
         Map<String, Object> config = new HashMap<>();
 
