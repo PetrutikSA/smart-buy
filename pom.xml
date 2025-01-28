@@ -17,7 +17,8 @@
 		<module>smart-buy-gateway</module>
 		<module>smart-buy-request-service</module>
         <module>user-request-core</module>
-    </modules>
+		<module>smart-buy-parse-service</module>
+	</modules>
 	<packaging>pom</packaging>
 	<url/>
 	<licenses>
