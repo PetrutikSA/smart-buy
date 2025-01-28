@@ -1,5 +1,7 @@
 package ru.petrutik.smartbuy.gateway.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import ru.petrutik.smartbuy.event.dto.ProductDto;
 import ru.petrutik.smartbuy.event.dto.RequestDto;
@@ -13,10 +15,12 @@ import java.util.List;
 public class UserResponseServiceImpl implements UserResponseService {
     private final SmartBuyBot bot;
     private final ConversationService conversationService;
+    private final Logger logger;
 
     public UserResponseServiceImpl(SmartBuyBot bot, ConversationService conversationService) {
         this.bot = bot;
         this.conversationService = conversationService;
+        this.logger = LoggerFactory.getLogger(UserResponseServiceImpl.class);
     }
 
     @Override
@@ -76,6 +80,17 @@ public class UserResponseServiceImpl implements UserResponseService {
         }
         bot.sendText(chatId, message);
         conversationService.makeConversationStatusNew(chatId);
+    }
+
+    @Override
+    public void showResultsAfterAddNewRequest(Long chatId, String requestQuery, List<ProductDto> products) {
+        if (products != null && !products.isEmpty()) {
+            bot.sendText(chatId, "Результаты по добавленному Вами запросу");
+            showResponse(chatId, requestQuery, products);
+        } else {
+            logger.error("Received empty product list as result after add new request, chatId = {}, request query = {}",
+                    chatId, requestQuery);
+        }
     }
 
     @Override
