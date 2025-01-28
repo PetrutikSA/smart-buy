@@ -8,6 +8,7 @@ import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Service;
 import ru.petrutik.smartbuy.event.dto.ProductDto;
 import ru.petrutik.smartbuy.event.dto.RequestDto;
+import ru.petrutik.smartbuy.event.parse.request.AddRequestParseEvent;
 import ru.petrutik.smartbuy.event.user.response.AddResponseEvent;
 import ru.petrutik.smartbuy.event.user.response.ExceptionResponseEvent;
 import ru.petrutik.smartbuy.event.user.response.ListAllResponseEvent;
@@ -36,21 +37,24 @@ public class RequestServiceImpl implements RequestService {
     private final RequestMapper requestMapper;
     private final ProductMapper productMapper;
     private final KafkaTemplate<Long, Object> kafkaTemplate;
-    private final String responseTopicName;
+    private final String userResponseTopicName;
+    private final String parseRequestTopicName;
     private final Logger logger;
 
     public RequestServiceImpl(UserService userService,
                               RequestRepository requestRepository, ProductRepository productRepository,
                               RequestMapper requestMapper, ProductMapper productMapper,
                               KafkaTemplate<Long, Object> kafkaTemplate,
-                              @Value("#{@kafkaConfig.getUserResponseTopicName()}") String responseTopicName) {
+                              @Value("#{@kafkaConfig.getUserResponseTopicName()}") String responseTopicName,
+                              @Value("#{@kafkaConfig.getParseRequestTopicName()}") String parseRequestTopicName) {
         this.userService = userService;
         this.requestRepository = requestRepository;
         this.productRepository = productRepository;
         this.requestMapper = requestMapper;
         this.productMapper = productMapper;
         this.kafkaTemplate = kafkaTemplate;
-        this.responseTopicName = responseTopicName;
+        this.userResponseTopicName = responseTopicName;
+        this.parseRequestTopicName = parseRequestTopicName;
         this.logger = LoggerFactory.getLogger(RequestServiceImpl.class);
     }
 
@@ -69,7 +73,10 @@ public class RequestServiceImpl implements RequestService {
         requestRepository.save(request);
         logger.info("Request saved to DB: {}", request);
         AddResponseEvent addResponseEvent = new AddResponseEvent(chatId, userRequests.size() + 1);
-        sendToKafkaTopic(chatId, addResponseEvent);
+        sendToUserKafkaTopic(chatId, addResponseEvent);
+        AddRequestParseEvent addRequestParseEvent = new AddRequestParseEvent(request.getId(), request.getSearchQuery(),
+                request.getMaxPrice());
+        sendToParseKafkaTopic(request.getId(), addRequestParseEvent);
     }
 
     @Override
@@ -83,7 +90,7 @@ public class RequestServiceImpl implements RequestService {
                 .toList();
         logger.info("Getting list of all requests of user: {}, requests: {}", user, userRequestsDto);
         ListAllResponseEvent listAllResponseEvent = new ListAllResponseEvent(chatId, userRequestsDto);
-        sendToKafkaTopic(chatId, listAllResponseEvent);
+        sendToUserKafkaTopic(chatId, listAllResponseEvent);
     }
 
     @Override
@@ -97,7 +104,7 @@ public class RequestServiceImpl implements RequestService {
                     .map(productMapper::productToProductDto)
                     .toList();
             ShowResponseEvent showResponseEvent = new ShowResponseEvent(chatId, request.getSearchQuery(), productsDto);
-            sendToKafkaTopic(chatId, showResponseEvent);
+            sendToUserKafkaTopic(chatId, showResponseEvent);
         }
     }
 
@@ -117,7 +124,7 @@ public class RequestServiceImpl implements RequestService {
             logger.info("Updating all remain requests with new request numbers of user {}", user);
             requestRepository.saveAll(requests);
             RemoveResponseEvent removeResponseEvent = new RemoveResponseEvent(chatId, requestNumber, requests.size());
-            sendToKafkaTopic(chatId, removeResponseEvent);
+            sendToUserKafkaTopic(chatId, removeResponseEvent);
         }
     }
 
@@ -128,7 +135,7 @@ public class RequestServiceImpl implements RequestService {
         List<Request> requests = requestRepository.findAllByUserId(user.getId());
         requestRepository.deleteAll(requests);
         RemoveAllResponseEvent removeAllResponseEvent = new RemoveAllResponseEvent(chatId);
-        sendToKafkaTopic(chatId, removeAllResponseEvent);
+        sendToUserKafkaTopic(chatId, removeAllResponseEvent);
     }
 
     @Override
@@ -144,12 +151,12 @@ public class RequestServiceImpl implements RequestService {
                 Long chatId = request.getUser().getChatId();
                 ShowResultsAfterAddResponseEvent showResultsAfterAddResponseEvent =
                         new ShowResultsAfterAddResponseEvent(chatId, request.getSearchQuery(), productsDto);
-                sendToKafkaTopic(chatId, showResultsAfterAddResponseEvent);
+                sendToUserKafkaTopic(chatId, showResultsAfterAddResponseEvent);
             } else {
                 logger.error("Couldn't find request on which got parsing response, requestId = {}", requestId);
             }
         } else {
-            logger.debug("After add request parsing didn't find anything, request id = {}", requestId);
+            logger.info("After add request parsing didn't find anything, request id = {}", requestId);
         }
     }
 
@@ -163,14 +170,22 @@ public class RequestServiceImpl implements RequestService {
             logger.error("Request with number {} not found, user {}", requestNumber, user);
             String message = "Не удалось получить информацию по поисковому запросу с номером " + requestNumber;
             ExceptionResponseEvent exceptionResponseEvent = new ExceptionResponseEvent(chatId, message);
-            sendToKafkaTopic(chatId, exceptionResponseEvent);
+            sendToUserKafkaTopic(chatId, exceptionResponseEvent);
             return null;
         }
     }
 
-    private void sendToKafkaTopic(Long key, Object value) {
+    private void sendToUserKafkaTopic(Long key, Object value) {
+        sendToKafkaTopic(key, value, userResponseTopicName);
+    }
+
+    private void sendToParseKafkaTopic(Long key, Object value) {
+        sendToKafkaTopic(key, value, parseRequestTopicName);
+    }
+
+    private void sendToKafkaTopic(Long key, Object value, String topicName) {
         CompletableFuture<SendResult<Long, Object>> future =
-                kafkaTemplate.send(responseTopicName, key, value);
+                kafkaTemplate.send(topicName, key, value);
         future.whenComplete(((stringSendResult, throwable) -> {
             if (throwable != null) {
                 logger.error("Failed to send message: {}", throwable.getLocalizedMessage(), throwable);
