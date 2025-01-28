@@ -1,0 +1,42 @@
+services:
+  smart-buy-gateway:
+    build: ./
+    image: smart-buy-gateway
+    container_name: smart-buy-gateway
+    ports:
+      - "8080:8080"
+    depends_on:
+      - smart-buy-conversation-db
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://smart-buy-conversation-db:5432/${CONVERSATION_DB_NAME}
+      - SPRING_DATASOURCE_USERNAME=${CONVERSATION_DB_USERNAME}
+      - SPRING_DATASOURCE_PASSWORD=${CONVERSATION_DB_PASSWORD}
+      - KAFKA_BOOTSTRAP_SERVERS=kafka-1:9090,kafka-2:9090
+      - SMARTBUYBOT_NAME=${SMARTBUY_BOT_NAME}
+      - SMARTBUYBOT_TOKEN=${SMARTBUY_BOT_TOKEN}
+    networks:
+      - kafka
+      - gateway
+
+  smart-buy-conversation-db:
+    image: postgres:16.1
+    container_name: smart-buy-conversation-db
+    ports:
+      - "6540:5432"
+    environment:
+      - POSTGRES_PASSWORD=${CONVERSATION_DB_PASSWORD}
+      - POSTGRES_USER=${CONVERSATION_DB_USERNAME}
+      - POSTGRES_DB=${CONVERSATION_DB_NAME}
+    healthcheck:
+      test: pg_isready -q -d $$POSTGRES_DB -U $$POSTGRES_USER
+      timeout: 5s
+      interval: 5s
+      retries: 10
+    networks:
+      - gateway
+
+networks:
+  kafka:
+    external: true
+    name: smartbuy-kafka
+  gateway:

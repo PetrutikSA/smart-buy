@@ -1,7 +1,11 @@
+server:
+  port: 8080
 smartbuy:
+  app:
+    request-limit: 10
   bot:
-    name: ${SMARTBYUBOT_NAME}
-    token: ${SMARTBYUBOT_TOKEN}
+    name: ${SMARTBUYBOT_NAME}
+    token: ${SMARTBUYBOT_TOKEN}
   kafka:
     topic:
       name:
@@ -11,6 +15,38 @@ smartbuy:
 
 spring:
   kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
     consumer:
-      bootstrap: localhost:9092,localhost:9094
+      bootstrap: ${KAFKA_BOOTSTRAP_SERVERS}
       group-id: user-response-event
+      properties:
+        spring:
+          json:
+            trusted:
+              packages: ru.petrutik.smartbuy.event.response
+  jpa:
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        format_sql: true
+        show_sql: true
+        use_sql_comments: true
+  datasource:
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+    driverClassName: org.postgresql.Driver
+  sql:
+    init:
+      mode: always
+
+logging:
+  level:
+    org:
+      springframework:
+        orm:
+          jpa: INFO
+          jpa.JpaTransactionManager: DEBUG
+        transaction: INFO
+        transaction.interceptor: TRACE
