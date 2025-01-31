@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import ru.petrutik.smartbuy.event.dto.ProductDto;
 import ru.petrutik.smartbuy.event.dto.RequestDto;
 import ru.petrutik.smartbuy.event.parse.request.AddRequestParseEvent;
+import ru.petrutik.smartbuy.event.parse.request.UpdateRequestParseEvent;
 import ru.petrutik.smartbuy.event.user.response.AddResponseEvent;
 import ru.petrutik.smartbuy.event.user.response.ExceptionResponseEvent;
 import ru.petrutik.smartbuy.event.user.response.ListAllResponseEvent;
@@ -170,7 +171,15 @@ public class RequestServiceImpl implements RequestService {
 
     @Override
     public void updateRequests() {
-
+        logger.info("Getting all requests");
+        List<Request> requests = requestRepository.findAll();
+        for (Request request : requests) {
+            long requestId = request.getId();
+            logger.info("Sending parse update event for request with id = {}", requestId);
+            UpdateRequestParseEvent updateRequestParseEvent =
+                    new UpdateRequestParseEvent(requestId, request.getSearchQuery(), request.getMaxPrice());
+            sendToParseKafkaTopic(requestId, updateRequestParseEvent);
+        }
     }
 
     private Request getRequestByChatIdAndNumber(Long chatId, Integer requestNumber) {
