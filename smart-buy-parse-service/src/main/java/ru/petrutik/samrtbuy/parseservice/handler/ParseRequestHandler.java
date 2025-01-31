@@ -7,6 +7,7 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 import ru.petrutik.samrtbuy.parseservice.service.ParseService;
 import ru.petrutik.smartbuy.event.parse.request.AddRequestParseEvent;
+import ru.petrutik.smartbuy.event.parse.request.UpdateRequestParseEvent;
 
 @Component
 @KafkaListener(topics = "#{@kafkaConfig.getRequestTopicName()}")
@@ -24,6 +25,13 @@ public class ParseRequestHandler {
         logEventReceiving(addRequestParseEvent.getClass().getName(), addRequestParseEvent.getRequestId());
         parseService.addRequestParsing(addRequestParseEvent.getRequestId(), addRequestParseEvent.getSearchQuery(),
                 addRequestParseEvent.getMaxPrice());
+    }
+
+    @KafkaHandler
+    public void handleUpdateRequestParseEvent(UpdateRequestParseEvent updateRequestParseEvent) {
+        logEventReceiving(updateRequestParseEvent.getClass().getName(), updateRequestParseEvent.getRequestId());
+        parseService.updateRequestParsing(updateRequestParseEvent.getRequestId(), updateRequestParseEvent.getSearchQuery(),
+                updateRequestParseEvent.getMaxPrice());
     }
 
     private void logEventReceiving(String eventClassName, Long requestId) {

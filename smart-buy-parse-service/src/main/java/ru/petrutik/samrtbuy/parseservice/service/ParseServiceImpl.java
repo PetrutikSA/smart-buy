@@ -8,6 +8,7 @@ import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Service;
 import ru.petrutik.smartbuy.event.dto.ProductDto;
 import ru.petrutik.smartbuy.event.parse.response.AddResponseParseEvent;
+import ru.petrutik.smartbuy.event.parse.response.UpdateResponseParseEvent;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -36,6 +37,13 @@ public class ParseServiceImpl implements ParseService {
         List<ProductDto> products = parseQuery(searchQuery, maxPrice);
         AddResponseParseEvent addResponseParseEvent = new AddResponseParseEvent(requestId, products);
         sendToKafkaTopic(requestId, addResponseParseEvent);
+    }
+
+    @Override
+    public void updateRequestParsing(Long requestId, String searchQuery, BigDecimal maxPrice) {
+        List<ProductDto> products = parseQuery(searchQuery, maxPrice);
+        UpdateResponseParseEvent updateResponseParseEvent = new UpdateResponseParseEvent(requestId, products);
+        sendToKafkaTopic(requestId, updateResponseParseEvent);
     }
 
     private List<ProductDto> parseQuery(String searchQuery, BigDecimal maxPrice) {
