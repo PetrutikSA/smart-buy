@@ -144,10 +144,13 @@ public class RequestServiceImpl implements RequestService {
             Optional<Request> requestOptional = requestRepository.findById(requestId);
             if (requestOptional.isPresent()) {
                 Request request = requestOptional.get();
+                logger.info("Got Product DTO list: {}", productsDto);
                 List<Product> products = productsDto.stream()
                         .map(productDto -> productMapper.productDtoToProduct(productDto, request, false))
                         .toList();
+                logger.info("Map product DTOs to Entities list: {}", products);
                 productRepository.saveAll(products);
+                logger.info("Saved to DB products to request with id = {}", requestId);
                 Long chatId = request.getUser().getChatId();
                 ShowResultsAfterAddResponseEvent showResultsAfterAddResponseEvent =
                         new ShowResultsAfterAddResponseEvent(chatId, request.getSearchQuery(), productsDto);

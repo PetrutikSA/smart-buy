@@ -36,7 +36,11 @@ public class ParseOzonService implements ParseMarketService{
         String encodedSearchText = URLEncoder.encode(searchQuery, StandardCharsets.UTF_8);
         List<ProductDto> products = new ArrayList<>();
         try {
-            Document result = Jsoup.connect(searchUrl + encodedSearchText).userAgent("Mozilla").get();
+            Document result = Jsoup.connect(searchUrl + encodedSearchText)
+                    .userAgent("Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:134.0) Gecko/20100101 Firefox/134.0")
+                    .cookie("abt_data", "7.mNtYuRTS0xtELWXw0QrTRV1_vE_5_iml3o4Gf5Ls19tASvfKrBd1IcN6mbf0XMe0kJ65CHTM-zN2Wa1barlJ_m8P_O5YuwapF4kUtFm1WPjPKCWf3oXhYBvgjbXpBhTUBaahmA8R_UZ6XlDhRJuzNRsLebrdVBzySN9hTc_CEXlCUfNZx34ddGu1TK1x98bk6nuGEXYV3gERNmfU_GFMO9Afy1f028KUpsMKHhdy6CWmtU5E75WiaSitsPOQaBd7Lz7dqT_FZsIN2gpLS13hew3S8OHio6QTHsj0n98w_th0MLY87ymU7nF35ZX4tokzZ7dTZ1ImKbCY-F91k7pqy04crf-y2zg2HFiaCg")
+                    .cookie("__Secure-access-token", "7.0.2bavL4_sS2a1T4goxOtYNQ.39.ASg8Ril1r9vvpVgOQ_WJs0bQ-t64u64KexWiyeuu6U_OOvlqXzGr_dy1hKdFcWS9Eg..20250130141156.MMZk0uAA0X18DbvBZmiJzj29iL6CfLhV6C0Apt4ihCA.16b02f471eec0d053")
+                    .get();
 
             Set<String> links = result.select("a[href]")
                     .stream()
@@ -56,8 +60,10 @@ public class ParseOzonService implements ParseMarketService{
     private ProductDto parseUsingOzonJsonService(String fullLink) throws IOException {
         //get json response
         Document jsonDoc = Jsoup.connect(jsonGetUrl + fullLink)
-                .userAgent("Mozilla")
+                .userAgent("Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:134.0) Gecko/20100101 Firefox/134.0")
                 .ignoreContentType(true)
+                .cookie("abt_data", "7.mNtYuRTS0xtELWXw0QrTRV1_vE_5_iml3o4Gf5Ls19tASvfKrBd1IcN6mbf0XMe0kJ65CHTM-zN2Wa1barlJ_m8P_O5YuwapF4kUtFm1WPjPKCWf3oXhYBvgjbXpBhTUBaahmA8R_UZ6XlDhRJuzNRsLebrdVBzySN9hTc_CEXlCUfNZx34ddGu1TK1x98bk6nuGEXYV3gERNmfU_GFMO9Afy1f028KUpsMKHhdy6CWmtU5E75WiaSitsPOQaBd7Lz7dqT_FZsIN2gpLS13hew3S8OHio6QTHsj0n98w_th0MLY87ymU7nF35ZX4tokzZ7dTZ1ImKbCY-F91k7pqy04crf-y2zg2HFiaCg")
+                .cookie("__Secure-access-token", "7.0.2bavL4_sS2a1T4goxOtYNQ.39.ASg8Ril1r9vvpVgOQ_WJs0bQ-t64u64KexWiyeuu6U_OOvlqXzGr_dy1hKdFcWS9Eg..20250130141156.MMZk0uAA0X18DbvBZmiJzj29iL6CfLhV6C0Apt4ihCA.16b02f471eec0d053")
                 .get();
         JsonNode rootNode = mapper.readTree(jsonDoc.body().text());
 

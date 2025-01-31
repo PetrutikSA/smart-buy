@@ -13,7 +13,7 @@ public class ProductMapper {
 
     public Product productDtoToProduct(ProductDto productDto, Request request, boolean isBanned) {
         Product product = new Product();
-        product.setUrl(product.getUrl());
+        product.setUrl(productDto.getUrl());
         product.setPrice(productDto.getPrice());
         product.setBanned(isBanned);
         product.setRequest(request);
