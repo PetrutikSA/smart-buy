@@ -18,6 +18,7 @@
 		<module>smart-buy-request-service</module>
         <module>user-request-core</module>
 		<module>smart-buy-parse-service</module>
+		<module>smart-buy-scheduler-service</module>
 	</modules>
 	<packaging>pom</packaging>
 	<url/>
