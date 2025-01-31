@@ -4,11 +4,6 @@ spring:
     consumer:
       bootstrap: ${KAFKA_BOOTSTRAP_SERVERS}
       group-id: scheduler-service-event
-      properties:
-        spring:
-          json:
-            trusted:
-              packages: ru.petrutik.smartbuy.event.sheduler
 smartbuy:
   kafka:
     topic:

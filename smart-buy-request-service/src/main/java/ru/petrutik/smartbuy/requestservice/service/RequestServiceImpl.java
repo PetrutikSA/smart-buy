@@ -163,6 +163,16 @@ public class RequestServiceImpl implements RequestService {
         }
     }
 
+    @Override
+    public void notifyUsers() {
+
+    }
+
+    @Override
+    public void updateRequests() {
+
+    }
+
     private Request getRequestByChatIdAndNumber(Long chatId, Integer requestNumber) {
         User user = userService.getUserByChatId(chatId);
         logger.info("Getting user's request with number {}, user: {}", requestNumber, user);

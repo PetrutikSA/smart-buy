@@ -16,4 +16,8 @@ public interface RequestService {
     void removeAllRequest(Long chatId);
 
     void resultParsingAfterAddRequest(Long requestId, List<ProductDto> products);
+
+    void updateRequests();
+
+    void notifyUsers();
 }
