@@ -147,7 +147,8 @@ public class RequestServiceImpl implements RequestService {
                 Request request = requestOptional.get();
                 logger.info("Got Product DTO list: {}", productsDto);
                 List<Product> products = productsDto.stream()
-                        .map(productDto -> productMapper.productDtoToProduct(productDto, request, false))
+                        .map(productDto -> productMapper.productDtoToProduct(productDto, request, false,
+                                false))
                         .toList();
                 logger.info("Map product DTOs to Entities list: {}", products);
                 productRepository.saveAll(products);
@@ -170,7 +171,7 @@ public class RequestServiceImpl implements RequestService {
     }
 
     @Override
-    public void updateRequests() {
+    public void updateRequestsInitialize() {
         logger.info("Getting all requests");
         List<Request> requests = requestRepository.findAll();
         for (Request request : requests) {
@@ -179,6 +180,46 @@ public class RequestServiceImpl implements RequestService {
             UpdateRequestParseEvent updateRequestParseEvent =
                     new UpdateRequestParseEvent(requestId, request.getSearchQuery(), request.getMaxPrice());
             sendToParseKafkaTopic(requestId, updateRequestParseEvent);
+        }
+    }
+
+    @Override
+    public void updateRequest(Long requestId, List<ProductDto> productsDto) {
+        if (productsDto != null && !productsDto.isEmpty()) {
+            Optional<Request> requestOptional = requestRepository.findById(requestId);
+            if (requestOptional.isPresent()) {
+                Request request = requestOptional.get();
+                List<Product> productsInDB = productRepository.findAllByRequestIdAndIsBanned(requestId, false);
+                final List<String> existedUrls = productsInDB.stream()
+                        .map(Product::getUrl)
+                        .toList();
+
+                logger.info("Got updates product DTO list: {}", productsDto);
+                List<Product> products = productsDto.stream()
+                        .map(productDto -> {
+                            Product product = productMapper.productDtoToProduct(productDto, request, false,
+                                    false);
+                            if (existedUrls.contains(product.getUrl())) {
+                                product.setNew(true);
+                                request.setUpdated(true);
+                            }
+                            return product;
+                        })
+                        .toList();
+                logger.info("Map product DTOs to Entities list: {}, request updated = {}", products, request.isUpdated());
+
+                productRepository.deleteAll(productsInDB);
+                logger.info("Removed existed products in DB to request with id = {}", requestId);
+                productRepository.saveAll(products);
+                logger.info("Saved to DB updated products to request with id = {}", requestId);
+                requestRepository.save(request);
+                logger.info("Updated request with id = {}", requestId);
+
+            } else {
+                logger.error("Couldn't find request on which got parsing update response, requestId = {}", requestId);
+            }
+        } else {
+            logger.info("After update request parsing didn't find anything, request id = {}", requestId);
         }
     }
 

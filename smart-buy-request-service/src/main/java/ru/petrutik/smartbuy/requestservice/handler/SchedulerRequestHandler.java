@@ -21,7 +21,7 @@ public class SchedulerRequestHandler {
     @KafkaHandler
     public void handleSchedulerRequestUpdateEvent(SchedulerRequestUpdateEvent schedulerRequestUpdateEvent) {
         logEventReceiving(schedulerRequestUpdateEvent.getClass().getName());
-        requestService.updateRequests();
+        requestService.updateRequestsInitialize();
     }
 
     @KafkaHandler

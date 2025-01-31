@@ -17,7 +17,9 @@ public interface RequestService {
 
     void resultParsingAfterAddRequest(Long requestId, List<ProductDto> products);
 
-    void updateRequests();
+    void updateRequestsInitialize();
+
+    void updateRequest(Long requestId, List<ProductDto> productsDto);
 
     void notifyUsers();
 }
