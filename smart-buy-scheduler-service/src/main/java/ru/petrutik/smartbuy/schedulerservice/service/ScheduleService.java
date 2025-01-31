@@ -2,11 +2,25 @@ package ru.petrutik.smartbuy.schedulerservice.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.support.SendResult;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import java.util.concurrent.CompletableFuture;
+
 @Service
 public class ScheduleService {
+    private final String schedulerRequestTopicName;
+    private final KafkaTemplate<Long, Object> kafkaTemplate;
+
+    public ScheduleService(@Value("#{@kafkaConfig.getRequestSchedulerRequestTopic()}") String schedulerRequestTopicName,
+                           KafkaTemplate<Long, Object> kafkaTemplate) {
+        this.schedulerRequestTopicName = schedulerRequestTopicName;
+        this.kafkaTemplate = kafkaTemplate;
+    }
+
     private final Logger logger = LoggerFactory.getLogger(ScheduleService.class);
 
     @Scheduled(cron = "* * * * * *")
@@ -17,5 +31,17 @@ public class ScheduleService {
     @Scheduled(cron = "* * * * * *")
     public void notifyUsersWithUpdatedRequests() {
         logger.info("Notifying users start");
+    }
+
+    private void sendToKafkaTopic(Long key, Object value) {
+        CompletableFuture<SendResult<Long, Object>> future =
+                kafkaTemplate.send(schedulerRequestTopicName, key, value);
+        future.whenComplete(((stringSendResult, throwable) -> {
+            if (throwable != null) {
+                logger.error("Failed to send message: {}", throwable.getLocalizedMessage(), throwable);
+            } else {
+                logger.info("Message sent successfully {}", stringSendResult);
+            }
+        }));
     }
 }
