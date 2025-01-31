@@ -1,4 +1,4 @@
-package ru.petrutik.smartbuy.event.response;
+package ru.petrutik.smartbuy.event.user.response;
 
 public class ExceptionResponseEvent {
     private Long chatId;

@@ -1,4 +1,4 @@
-package ru.petrutik.smartbuy.requestservice.config;
+package ru.petrutik.samrtbuy.parseservice.config;
 
 import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
@@ -29,52 +29,30 @@ import java.util.Map;
 
 @Configuration
 public class KafkaConfig {
-    @Value("${smartbuy.kafka.topic.name.user.request}")
-    private String userRequestTopicName;
-    @Value("${smartbuy.kafka.topic.name.user.response}")
-    private String userResponseTopicName;
     @Value("${smartbuy.kafka.topic.name.parse.request}")
-    private String parseRequestTopicName;
+    private String requestTopicName;
     @Value("${smartbuy.kafka.topic.name.parse.response}")
-    private String parseResponseTopicName;
+    private String responseTopicName;
 
-    public String getUserRequestTopicName() {
-        return userRequestTopicName;
+    public String getRequestTopicName() {
+        return requestTopicName;
     }
 
-    public String getUserResponseTopicName() {
-        return userResponseTopicName;
-    }
-
-    public String getParseRequestTopicName() {
-        return parseRequestTopicName;
-    }
-
-    public String getParseResponseTopicName() {
-        return parseResponseTopicName;
+    public String getResponseTopicName() {
+        return responseTopicName;
     }
 
     @Autowired
     private Environment environment;
 
     @Bean
-    public NewTopic createUserResponseTopic() {
-        return TopicBuilder.name(userResponseTopicName)
+    public NewTopic createTopic() {
+        return TopicBuilder.name(responseTopicName)
                 .partitions(3)
                 .replicas(3)
                 .configs(Map.of("min.insync.replicas", "2"))
                 .build();
     }
-
-    @Bean
-    public NewTopic createParseRequestTopic() {
-        return TopicBuilder.name(parseRequestTopicName)
-                .partitions(3)
-                .replicas(3)
-                .configs(Map.of("min.insync.replicas", "2"))
-                .build();
-    }
-
     private Map<String, Object> consumerConfigs() {
         Map<String, Object> config = new HashMap<>();
 
@@ -108,6 +86,7 @@ public class KafkaConfig {
         factory.setCommonErrorHandler(errorHandler);
         return factory;
     }
+
     @Bean
     public KafkaTemplate<Long, Object> kafkaTemplate() {
         Map<String, Object> config = new HashMap<>();

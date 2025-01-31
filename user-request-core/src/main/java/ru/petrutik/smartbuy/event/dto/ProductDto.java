@@ -21,4 +21,12 @@ public class ProductDto {
     public BigDecimal getPrice() {
         return price;
     }
+
+    @Override
+    public String toString() {
+        return "ProductDto{" +
+                "url='" + url + '\'' +
+                ", price=" + price +
+                '}';
+    }
 }

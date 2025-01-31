@@ -1,0 +1,22 @@
+server:
+  port: 8100
+spring:
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
+    consumer:
+      bootstrap: ${KAFKA_BOOTSTRAP_SERVERS}
+      group-id: parse-service-event
+      properties:
+        spring:
+          json:
+            trusted:
+              packages: ru.petrutik.smartbuy.event.parse.request
+    producer:
+      bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
+smartbuy:
+  kafka:
+    topic:
+      name:
+        parse:
+          request: parse-request-topic
+          response: parse-response-topic

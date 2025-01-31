@@ -1,12 +1,12 @@
-package ru.petrutik.smartbuy.event.response;
+package ru.petrutik.smartbuy.event.user.request;
 
-public class RemoveAllResponseEvent {
+public class ListAllRequestsEvent {
     private Long chatId;
 
-    public RemoveAllResponseEvent() {
+    public ListAllRequestsEvent() {
     }
 
-    public RemoveAllResponseEvent(Long chatId) {
+    public ListAllRequestsEvent(Long chatId) {
         this.chatId = chatId;
     }
 

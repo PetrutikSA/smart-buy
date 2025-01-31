@@ -10,6 +10,8 @@ public interface UserResponseService {
 
     void showResponse(Long chatId, String requestQuery, List<ProductDto> products);
 
+    void showResultsAfterAddNewRequest(Long chatId, String requestQuery, List<ProductDto> products);
+
     void updateRequestCount(Long chatId, Integer requestCount);
 
     void removeResponse(Long chatId, Integer requestNumber, Integer remainRequestsCount);

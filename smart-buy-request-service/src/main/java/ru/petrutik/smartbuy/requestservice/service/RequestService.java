@@ -1,5 +1,9 @@
 package ru.petrutik.smartbuy.requestservice.service;
 
+import ru.petrutik.smartbuy.event.dto.ProductDto;
+
+import java.util.List;
+
 public interface RequestService {
     void addRequest(Long chatId, String url, Integer price);
 
@@ -10,4 +14,6 @@ public interface RequestService {
     void removeRequest(Long chatId, Integer requestNumber);
 
     void removeAllRequest(Long chatId);
+
+    void resultParsingAfterAddRequest(Long requestId, List<ProductDto> products);
 }
