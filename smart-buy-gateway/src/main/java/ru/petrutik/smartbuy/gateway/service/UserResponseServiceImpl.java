@@ -10,6 +10,7 @@ import ru.petrutik.smartbuy.gateway.model.ConversationStatus;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class UserResponseServiceImpl implements UserResponseService {
@@ -117,5 +118,31 @@ public class UserResponseServiceImpl implements UserResponseService {
     public void exceptionResponse(Long chatId, String message) {
         bot.sendText(chatId, message);
         conversationService.makeConversationStatusNew(chatId);
+    }
+
+    @Override
+    public void notifyNewProduct(Long chatId, Map<String, List<ProductDto>> mapSearchQueryToListNewProducts) {
+        if (mapSearchQueryToListNewProducts != null && !mapSearchQueryToListNewProducts.isEmpty()) {
+            StringBuilder responseTextBuilder = new StringBuilder();
+            responseTextBuilder.append("По следующим запросам добавлены новые результаты поиска: \n");
+            for (Map.Entry<String, List<ProductDto>> requestProducts : mapSearchQueryToListNewProducts.entrySet()) {
+                responseTextBuilder.append("По запросу: \"");
+                responseTextBuilder.append(requestProducts.getKey());
+                responseTextBuilder.append("\" добавлены продукты:\n");
+                for (ProductDto productDto : requestProducts.getValue()) {
+                    responseTextBuilder.append("---------------\n");
+                    responseTextBuilder.append("Стоимость: ");
+                    responseTextBuilder.append(productDto.getPrice());
+                    responseTextBuilder.append(" руб.\n");
+                    responseTextBuilder.append("Ссылка: ");
+                    responseTextBuilder.append(productDto.getUrl());
+                    responseTextBuilder.append("\n");
+                }
+                responseTextBuilder.append("\n");
+            }
+            bot.sendText(chatId, responseTextBuilder.toString());
+        } else {
+            logger.error("Received empty map of updated requests, chatId = {}", chatId);
+        }
     }
 }

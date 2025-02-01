@@ -13,6 +13,7 @@ import ru.petrutik.smartbuy.event.user.response.RemoveAllResponseEvent;
 import ru.petrutik.smartbuy.event.user.response.RemoveResponseEvent;
 import ru.petrutik.smartbuy.event.user.response.ShowResponseEvent;
 import ru.petrutik.smartbuy.event.user.response.ShowResultsAfterAddResponseEvent;
+import ru.petrutik.smartbuy.event.user.response.UserNotifyNewProductsEvent;
 import ru.petrutik.smartbuy.gateway.service.UserResponseService;
 import ru.petrutik.smartbuy.gateway.service.UserResponseServiceImpl;
 
@@ -71,6 +72,13 @@ public class UserResponseHandler {
                 showResultsAfterAddResponseEvent.getChatId());
         userResponseService.showResultsAfterAddNewRequest(showResultsAfterAddResponseEvent.getChatId(),
                 showResultsAfterAddResponseEvent.getRequestQuery(), showResultsAfterAddResponseEvent.getProducts());
+    }
+
+    @KafkaHandler
+    public void handleUserNotifyNewProductsEvent(UserNotifyNewProductsEvent userNotifyNewProductsEvent) {
+        logEventReceiving(userNotifyNewProductsEvent.getClass().getName(), userNotifyNewProductsEvent.getChatId());
+        userResponseService.notifyNewProduct(userNotifyNewProductsEvent.getChatId(),
+                userNotifyNewProductsEvent.getMapSearchQueryToListNewProducts());
     }
 
     private void logEventReceiving(String eventClassName, Long chatId) {
