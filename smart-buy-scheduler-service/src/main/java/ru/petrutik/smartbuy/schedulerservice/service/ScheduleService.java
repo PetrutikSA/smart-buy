@@ -26,20 +26,20 @@ public class ScheduleService {
 
     private final Logger logger = LoggerFactory.getLogger(ScheduleService.class);
 
-    @Scheduled(cron = "* 3 * * * *")
+    @Scheduled(cron = "0 0 3 * * *")
     public void updateAllRequests() {
         logger.info("Updating users start");
-        SchedulerRequestUpdateEvent schedulerRequestUpdateEvent = new SchedulerRequestUpdateEvent();
         Long key = Instant.now().toEpochMilli();
+        SchedulerRequestUpdateEvent schedulerRequestUpdateEvent = new SchedulerRequestUpdateEvent(key);
         sendToKafkaTopic(key, schedulerRequestUpdateEvent);
 
     }
 
-    @Scheduled(cron = "* 6 * * * *")
+    @Scheduled(cron = "0 30 14 * * *")
     public void notifyUsersWithUpdatedRequests() {
         logger.info("Notifying users start");
-        SchedulerUserNotifyEvent schedulerUserNotifyEvent = new SchedulerUserNotifyEvent();
         Long key = Instant.now().toEpochMilli();
+        SchedulerUserNotifyEvent schedulerUserNotifyEvent = new SchedulerUserNotifyEvent(key);
         sendToKafkaTopic(key, schedulerUserNotifyEvent);
     }
 

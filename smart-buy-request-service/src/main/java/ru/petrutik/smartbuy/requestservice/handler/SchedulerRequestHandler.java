@@ -4,10 +4,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.kafka.annotation.KafkaHandler;
 import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.stereotype.Component;
 import ru.petrutik.smartbuy.event.scheduler.SchedulerRequestUpdateEvent;
 import ru.petrutik.smartbuy.event.scheduler.SchedulerUserNotifyEvent;
 import ru.petrutik.smartbuy.requestservice.service.RequestService;
 
+@Component
 @KafkaListener(topics = "#{@kafkaConfig.getSchedulerRequestTopicName()}")
 public class SchedulerRequestHandler {
     private final RequestService requestService;

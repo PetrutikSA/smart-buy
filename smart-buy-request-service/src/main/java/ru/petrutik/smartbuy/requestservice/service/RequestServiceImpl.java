@@ -228,16 +228,16 @@ public class RequestServiceImpl implements RequestService {
             if (requestOptional.isPresent()) {
                 Request request = requestOptional.get();
                 List<Product> productsInDB = productRepository.findAllByRequestIdAndIsBanned(requestId, false);
-                final List<String> existedUrls = productsInDB.stream()
+                List<String> existedUrls = productsInDB.stream()
                         .map(Product::getUrl)
                         .toList();
-
+                logger.info("Got existed url list: {}", existedUrls);
                 logger.info("Got updates product DTO list: {}", productsDto);
                 List<Product> products = productsDto.stream()
                         .map(productDto -> {
                             Product product = productMapper.productDtoToProduct(productDto, request, false,
                                     false);
-                            if (existedUrls.contains(product.getUrl())) {
+                            if (!existedUrls.contains(product.getUrl())) {
                                 product.setNew(true);
                                 request.setUpdated(true);
                             }

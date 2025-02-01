@@ -48,9 +48,12 @@ public class ParseServiceImpl implements ParseService {
 
     private List<ProductDto> parseQuery(String searchQuery, BigDecimal maxPrice) {
         List<ProductDto> products = new ArrayList<>();
+        logger.info("Start parsing request");
         for (ParseMarketService parseMarketService : parseMarketServices) {
+            logger.info("Start parsing with service {}", parseMarketService.getClass().getName());
             products.addAll(parseMarketService.parseQuery(searchQuery));
         }
+        logger.info("Get parsing results: {}", products);
         return products.stream()
                 .filter(product -> product.getPrice().compareTo(maxPrice) <= 0)
                 .sorted(Comparator.comparing(ProductDto::getPrice))
