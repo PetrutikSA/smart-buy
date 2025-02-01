@@ -21,6 +21,7 @@ public class Product {
     @ManyToOne
     @JoinColumn(name = "request_id")
     private Request request;
+    private boolean isNew;
     private boolean isBanned;
 
     public Long getId() {
@@ -53,6 +54,14 @@ public class Product {
 
     public void setRequest(Request request) {
         this.request = request;
+    }
+
+    public boolean isNew() {
+        return isNew;
+    }
+
+    public void setNew(boolean aNew) {
+        isNew = aNew;
     }
 
     public boolean isBanned() {

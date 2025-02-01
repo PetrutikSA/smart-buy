@@ -9,6 +9,8 @@ import java.util.Optional;
 public interface RequestRepository extends JpaRepository<Request, Long> {
     List<Request> findAllByUserId(Long userId);
 
+    List<Request> findAllByIsUpdated(boolean isUpdated);
+
     Optional<Request> findByUserIdAndRequestNumber(Long userId, Integer requestNumber);
 
     void deleteAllByUserId(Long userId);

@@ -7,4 +7,6 @@ import java.util.List;
 
 public interface ProductRepository extends JpaRepository<Product, Long> {
     List<Product> findAllByRequestIdAndIsBanned(Long requestId, boolean isBanned);
+
+    List<Product> findAllByIsNew(boolean isNew);
 }

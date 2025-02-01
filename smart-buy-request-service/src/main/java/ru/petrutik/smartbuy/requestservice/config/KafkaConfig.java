@@ -37,6 +37,8 @@ public class KafkaConfig {
     private String parseRequestTopicName;
     @Value("${smartbuy.kafka.topic.name.parse.response}")
     private String parseResponseTopicName;
+    @Value("${smartbuy.kafka.topic.name.scheduler.request}")
+    private String schedulerRequestTopicName;
 
     public String getUserRequestTopicName() {
         return userRequestTopicName;
@@ -52,6 +54,10 @@ public class KafkaConfig {
 
     public String getParseResponseTopicName() {
         return parseResponseTopicName;
+    }
+
+    public String getSchedulerRequestTopicName() {
+        return schedulerRequestTopicName;
     }
 
     @Autowired

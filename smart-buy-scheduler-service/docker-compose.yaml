@@ -1,0 +1,16 @@
+services:
+  smart-buy-parse-service:
+    build: ./
+    image: smart-buy-scheduler-service
+    container_name: smart-buy-scheduler-service
+    environment:
+      - KAFKA_BOOTSTRAP_SERVERS=kafka-1:9090,kafka-2:9090
+    networks:
+      - kafka
+      - schedule
+
+networks:
+  kafka:
+    external: true
+    name: smartbuy-kafka
+  schedule:

@@ -20,6 +20,7 @@ CREATE TABLE IF NOT EXISTS products (
   url VARCHAR NOT NULL,
   price DECIMAL(10,2),
   request_id BIGINT REFERENCES requests(id) ON DELETE CASCADE,
+  is_new BOOLEAN,
   is_banned BOOLEAN,
   CONSTRAINT pk_products PRIMARY KEY (id)
 );

@@ -11,10 +11,11 @@ public class ProductMapper {
         return new ProductDto(product.getUrl(), product.getPrice());
     }
 
-    public Product productDtoToProduct(ProductDto productDto, Request request, boolean isBanned) {
+    public Product productDtoToProduct(ProductDto productDto, Request request, boolean isNew, boolean isBanned) {
         Product product = new Product();
         product.setUrl(productDto.getUrl());
         product.setPrice(productDto.getPrice());
+        product.setNew(isNew);
         product.setBanned(isBanned);
         product.setRequest(request);
         return product;

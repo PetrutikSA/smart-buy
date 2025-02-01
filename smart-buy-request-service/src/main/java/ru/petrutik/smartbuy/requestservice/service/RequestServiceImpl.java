@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import ru.petrutik.smartbuy.event.dto.ProductDto;
 import ru.petrutik.smartbuy.event.dto.RequestDto;
 import ru.petrutik.smartbuy.event.parse.request.AddRequestParseEvent;
+import ru.petrutik.smartbuy.event.parse.request.UpdateRequestParseEvent;
 import ru.petrutik.smartbuy.event.user.response.AddResponseEvent;
 import ru.petrutik.smartbuy.event.user.response.ExceptionResponseEvent;
 import ru.petrutik.smartbuy.event.user.response.ListAllResponseEvent;
@@ -16,6 +17,7 @@ import ru.petrutik.smartbuy.event.user.response.RemoveAllResponseEvent;
 import ru.petrutik.smartbuy.event.user.response.RemoveResponseEvent;
 import ru.petrutik.smartbuy.event.user.response.ShowResponseEvent;
 import ru.petrutik.smartbuy.event.user.response.ShowResultsAfterAddResponseEvent;
+import ru.petrutik.smartbuy.event.user.response.UserNotifyNewProductsEvent;
 import ru.petrutik.smartbuy.requestservice.dto.mapper.ProductMapper;
 import ru.petrutik.smartbuy.requestservice.dto.mapper.RequestMapper;
 import ru.petrutik.smartbuy.requestservice.model.Product;
@@ -25,9 +27,14 @@ import ru.petrutik.smartbuy.requestservice.repository.ProductRepository;
 import ru.petrutik.smartbuy.requestservice.repository.RequestRepository;
 
 import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 @Service
 public class RequestServiceImpl implements RequestService {
@@ -146,7 +153,8 @@ public class RequestServiceImpl implements RequestService {
                 Request request = requestOptional.get();
                 logger.info("Got Product DTO list: {}", productsDto);
                 List<Product> products = productsDto.stream()
-                        .map(productDto -> productMapper.productDtoToProduct(productDto, request, false))
+                        .map(productDto -> productMapper.productDtoToProduct(productDto, request, false,
+                                false))
                         .toList();
                 logger.info("Map product DTOs to Entities list: {}", products);
                 productRepository.saveAll(products);
@@ -159,7 +167,97 @@ public class RequestServiceImpl implements RequestService {
                 logger.error("Couldn't find request on which got parsing response, requestId = {}", requestId);
             }
         } else {
-            logger.info("After add request parsing didn't find anything, request id = {}", requestId);
+            logger.error("After add request parsing didn't find anything, request id = {}", requestId);
+        }
+    }
+
+    @Override
+    public void notifyUsers() {
+        List<Request> updatedRequests = requestRepository.findAllByIsUpdated(true);
+        logger.info("Got updated requests: {}", updatedRequests);
+        if (!updatedRequests.isEmpty()) {
+            List<Product> newProducts = productRepository.findAllByIsNew(true);
+            logger.info("Got new products: {}", newProducts);
+            if (!newProducts.isEmpty()) {
+                Set<User> userToNotify = updatedRequests.stream()
+                        .map(Request::getUser)
+                        .collect(Collectors.toSet());
+                logger.info("Got users to notify: {}", userToNotify);
+                for (User user : userToNotify) {
+                    Long chatId = user.getChatId();
+                    List<Request> usersUpdatedRequests = updatedRequests.stream()
+                            .filter(request -> Objects.equals(request.getUser().getId(), user.getId()))
+                            .toList();
+                    Map<String, List<ProductDto>> mapSearchQueryToListNewProducts = new HashMap<>();
+                    for (Request request : usersUpdatedRequests) {
+                        List<ProductDto> products = newProducts.stream()
+                                .filter(product -> Objects.equals(product.getRequest().getId(), request.getId()))
+                                .map(productMapper::productToProductDto)
+                                .toList();
+                        mapSearchQueryToListNewProducts.put(request.getSearchQuery(), products);
+                    }
+                    UserNotifyNewProductsEvent userNotifyNewProductsEvent =
+                            new UserNotifyNewProductsEvent(chatId, mapSearchQueryToListNewProducts);
+                    sendToUserKafkaTopic(chatId, userNotifyNewProductsEvent);
+                }
+            } else {
+                logger.error("Have no new products, but have updated requests, process stopped.");
+            }
+        } else {
+            logger.info("Have no updated requests to notify users, notify process stopped.");
+        }
+    }
+
+    @Override
+    public void updateRequestsInitialize() {
+        logger.info("Getting all requests");
+        List<Request> requests = requestRepository.findAll();
+        for (Request request : requests) {
+            long requestId = request.getId();
+            logger.info("Sending parse update event for request with id = {}", requestId);
+            UpdateRequestParseEvent updateRequestParseEvent =
+                    new UpdateRequestParseEvent(requestId, request.getSearchQuery(), request.getMaxPrice());
+            sendToParseKafkaTopic(requestId, updateRequestParseEvent);
+        }
+    }
+
+    @Override
+    public void updateRequest(Long requestId, List<ProductDto> productsDto) {
+        if (productsDto != null && !productsDto.isEmpty()) {
+            Optional<Request> requestOptional = requestRepository.findById(requestId);
+            if (requestOptional.isPresent()) {
+                Request request = requestOptional.get();
+                List<Product> productsInDB = productRepository.findAllByRequestIdAndIsBanned(requestId, false);
+                List<String> existedUrls = productsInDB.stream()
+                        .map(Product::getUrl)
+                        .toList();
+                logger.info("Got existed url list: {}", existedUrls);
+                logger.info("Got updates product DTO list: {}", productsDto);
+                List<Product> products = productsDto.stream()
+                        .map(productDto -> {
+                            Product product = productMapper.productDtoToProduct(productDto, request, false,
+                                    false);
+                            if (!existedUrls.contains(product.getUrl())) {
+                                product.setNew(true);
+                                request.setUpdated(true);
+                            }
+                            return product;
+                        })
+                        .toList();
+                logger.info("Map product DTOs to Entities list: {}, request updated = {}", products, request.isUpdated());
+
+                productRepository.deleteAll(productsInDB);
+                logger.info("Removed existed products in DB to request with id = {}", requestId);
+                productRepository.saveAll(products);
+                logger.info("Saved to DB updated products to request with id = {}", requestId);
+                requestRepository.save(request);
+                logger.info("Updated request with id = {}", requestId);
+
+            } else {
+                logger.error("Couldn't find request on which got parsing update response, requestId = {}", requestId);
+            }
+        } else {
+            logger.error("After update request parsing didn't find anything, request id = {}", requestId);
         }
     }
 
