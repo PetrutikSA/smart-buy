@@ -17,6 +17,7 @@ import ru.petrutik.smartbuy.event.user.response.RemoveAllResponseEvent;
 import ru.petrutik.smartbuy.event.user.response.RemoveResponseEvent;
 import ru.petrutik.smartbuy.event.user.response.ShowResponseEvent;
 import ru.petrutik.smartbuy.event.user.response.ShowResultsAfterAddResponseEvent;
+import ru.petrutik.smartbuy.event.user.response.UserNotifyNewProductsEvent;
 import ru.petrutik.smartbuy.requestservice.dto.mapper.ProductMapper;
 import ru.petrutik.smartbuy.requestservice.dto.mapper.RequestMapper;
 import ru.petrutik.smartbuy.requestservice.model.Product;
@@ -26,9 +27,14 @@ import ru.petrutik.smartbuy.requestservice.repository.ProductRepository;
 import ru.petrutik.smartbuy.requestservice.repository.RequestRepository;
 
 import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 @Service
 public class RequestServiceImpl implements RequestService {
@@ -161,13 +167,45 @@ public class RequestServiceImpl implements RequestService {
                 logger.error("Couldn't find request on which got parsing response, requestId = {}", requestId);
             }
         } else {
-            logger.info("After add request parsing didn't find anything, request id = {}", requestId);
+            logger.error("After add request parsing didn't find anything, request id = {}", requestId);
         }
     }
 
     @Override
     public void notifyUsers() {
-
+        List<Request> updatedRequests = requestRepository.findAllByIsUpdated(true);
+        logger.info("Got updated requests: {}", updatedRequests);
+        if (!updatedRequests.isEmpty()) {
+            List<Product> newProducts = productRepository.findAllByIsNew(true);
+            logger.info("Got new products: {}", newProducts);
+            if (!newProducts.isEmpty()) {
+                Set<User> userToNotify = updatedRequests.stream()
+                        .map(Request::getUser)
+                        .collect(Collectors.toSet());
+                logger.info("Got users to notify: {}", userToNotify);
+                for (User user : userToNotify) {
+                    Long chatId = user.getChatId();
+                    List<Request> usersUpdatedRequests = updatedRequests.stream()
+                            .filter(request -> Objects.equals(request.getUser().getId(), user.getId()))
+                            .toList();
+                    Map<String, List<ProductDto>> mapSearchQueryToListNewProducts = new HashMap<>();
+                    for (Request request : usersUpdatedRequests) {
+                        List<ProductDto> products = newProducts.stream()
+                                .filter(product -> Objects.equals(product.getRequest().getId(), request.getId()))
+                                .map(productMapper::productToProductDto)
+                                .toList();
+                        mapSearchQueryToListNewProducts.put(request.getSearchQuery(), products);
+                    }
+                    UserNotifyNewProductsEvent userNotifyNewProductsEvent =
+                            new UserNotifyNewProductsEvent(chatId, mapSearchQueryToListNewProducts);
+                    sendToUserKafkaTopic(chatId, userNotifyNewProductsEvent);
+                }
+            } else {
+                logger.error("Have no new products, but have updated requests, process stopped.");
+            }
+        } else {
+            logger.info("Have no updated requests to notify users, notify process stopped.");
+        }
     }
 
     @Override
@@ -219,7 +257,7 @@ public class RequestServiceImpl implements RequestService {
                 logger.error("Couldn't find request on which got parsing update response, requestId = {}", requestId);
             }
         } else {
-            logger.info("After update request parsing didn't find anything, request id = {}", requestId);
+            logger.error("After update request parsing didn't find anything, request id = {}", requestId);
         }
     }
 
