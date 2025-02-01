@@ -7,7 +7,10 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import ru.petrutik.smartbuy.event.scheduler.SchedulerRequestUpdateEvent;
+import ru.petrutik.smartbuy.event.scheduler.SchedulerUserNotifyEvent;
 
+import java.time.Instant;
 import java.util.concurrent.CompletableFuture;
 
 @Service
@@ -23,14 +26,21 @@ public class ScheduleService {
 
     private final Logger logger = LoggerFactory.getLogger(ScheduleService.class);
 
-    @Scheduled(cron = "* * * * * *")
+    @Scheduled(cron = "* 3 * * * *")
     public void updateAllRequests() {
         logger.info("Updating users start");
+        SchedulerRequestUpdateEvent schedulerRequestUpdateEvent = new SchedulerRequestUpdateEvent();
+        Long key = Instant.now().toEpochMilli();
+        sendToKafkaTopic(key, schedulerRequestUpdateEvent);
+
     }
 
-    @Scheduled(cron = "* * * * * *")
+    @Scheduled(cron = "* 6 * * * *")
     public void notifyUsersWithUpdatedRequests() {
         logger.info("Notifying users start");
+        SchedulerUserNotifyEvent schedulerUserNotifyEvent = new SchedulerUserNotifyEvent();
+        Long key = Instant.now().toEpochMilli();
+        sendToKafkaTopic(key, schedulerUserNotifyEvent);
     }
 
     private void sendToKafkaTopic(Long key, Object value) {
