@@ -1,0 +1,155 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: conversation-db-pv
+  namespace: smartbuy
+spec:
+  capacity:
+    storage: 1Gi
+  volumeMode: Filesystem
+  storageClassName: standard
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: /data/conversation-db
+    type: DirectoryOrCreate
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: conversation-db-pvc
+  namespace: smartbuy
+spec:
+  volumeName: conversation-db-pv
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: conversation-db-svc
+  namespace: smartbuy
+spec:
+  type: NodePort
+  ports:
+    - port: 5432
+      targetPort: 5432
+      nodePort: 32540
+  selector:
+    app: conversation-db
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: conversation-db-deployment
+  namespace: smartbuy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: conversation-db
+  template:
+    metadata:
+      labels:
+        app: conversation-db
+    spec:
+      containers:
+        - name: conversation-db
+          image: postgres:16.1
+          env:
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: gateway-secret
+                  key: .CONVERSATION_DB_NAME
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: gateway-secret
+                  key: .CONVERSATION_DB_USERNAME
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: gateway-secret
+                  key: .CONVERSATION_DB_PASSWORD
+          ports:
+            - containerPort: 5432
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: conversation-db-storage
+      volumes:
+        - name: conversation-db-storage
+          persistentVolumeClaim:
+            claimName: conversation-db-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: smartbuy-gateway-svc
+  namespace: smartbuy
+spec:
+  type: NodePort
+  ports:
+    - port: 8081
+      targetPort: 8081
+      nodePort: 32081
+  selector:
+    app: gateway
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: smartbuy-gateway-deployment
+  namespace: smartbuy
+spec:
+  selector:
+    matchLabels:
+      app: gateway
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: gateway
+    spec:
+      containers:
+        - name: smartbuy-gateway
+          image: petrutiksa/smart-buy-gateway
+          env:
+            - name: CONVERSATION_DB
+              valueFrom:
+                secretKeyRef:
+                  name: gateway-secret
+                  key: .CONVERSATION_DB_NAME
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:postgresql://conversation-db-svc.smartbuy:5432/$(CONVERSATION_DB)"
+            - name: SPRING_DATASOURCE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: gateway-secret
+                  key: .CONVERSATION_DB_USERNAME
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: gateway-secret
+                  key: .CONVERSATION_DB_PASSWORD
+            - name: SMARTBUYBOT_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: gateway-secret
+                  key: .SMARTBUY_BOT_NAME
+            - name: SMARTBUYBOT_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: gateway-secret
+                  key: .SMARTBUY_BOT_TOKEN
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              value: "kafka-0.kafka-svc.kafka.svc.cluster.local:9090,kafka-1.kafka-svc.kafka.svc.cluster.local:9090"
+          ports:
+            - containerPort: 8081 #Telegram Bot API port
+      initContainers:
+        - name: init-conversation-db
+          image: busybox:1.28
+          command: [ 'sh', '-c', "until nslookup conversation-db-svc.gateway.svc.cluster.local; do echo waiting for conversation-db; sleep 2; done" ]
