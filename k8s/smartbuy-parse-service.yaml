@@ -1,0 +1,37 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: smartbuy-parse-service-svc
+  namespace: smartbuy
+spec:
+  type: NodePort
+  ports:
+    - port: 8100
+      targetPort: 8100
+      nodePort: 32100
+  selector:
+    app: parse-service
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: smartbuy-parse-service-deployment
+  namespace: smartbuy
+spec:
+  selector:
+    matchLabels:
+      app: parse-service
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: parse-service
+    spec:
+      containers:
+        - name: parse-service
+          image: petrutiksa/smart-buy-parse-service
+          env:
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              value: "kafka-0.kafka-svc.kafka.svc.cluster.local:9090,kafka-1.kafka-svc.kafka.svc.cluster.local:9090"
+          ports:
+            - containerPort: 8100
