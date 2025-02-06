@@ -10,3 +10,8 @@ smartbuy:
       name:
         scheduler:
           request: scheduler-event-request-topic
+  schedule:
+    cron:
+      update: ${CRON_UPDATE}
+      notify: ${CRON_NOTIFY}
+      timezone: ${CRON_TIMEZONE}

@@ -26,7 +26,8 @@ public class ScheduleService {
 
     private final Logger logger = LoggerFactory.getLogger(ScheduleService.class);
 
-    @Scheduled(cron = "0 0 3 * * *")
+    @Scheduled(cron = "${smartbuy.schedule.cron.update:0 0 3 * * ?}",
+            zone = "${smartbuy.schedule.cron.timezone:Europe/Moscow}")
     public void updateAllRequests() {
         logger.info("Updating users start");
         Long key = Instant.now().toEpochMilli();
@@ -35,7 +36,8 @@ public class ScheduleService {
 
     }
 
-    @Scheduled(cron = "0 30 14 * * *")
+    @Scheduled(cron = "${smartbuy.schedule.cron.notify:0 30 14 * * ?}",
+            zone = "${smartbuy.schedule.cron.timezone:Europe/Moscow}")
     public void notifyUsersWithUpdatedRequests() {
         logger.info("Notifying users start");
         Long key = Instant.now().toEpochMilli();

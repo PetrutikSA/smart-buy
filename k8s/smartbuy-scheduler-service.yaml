@@ -33,5 +33,11 @@ spec:
           env:
             - name: KAFKA_BOOTSTRAP_SERVERS
               value: "kafka-0.kafka-svc.kafka.svc.cluster.local:9090,kafka-1.kafka-svc.kafka.svc.cluster.local:9090"
+            - name: CRON_UPDATE
+              value: "0 0 5 * * ?"
+            - name: CRON_NOTIFY
+              value: "0 15 13 * * ?"
+            - name: CRON_TIMEZONE
+              value: "Europe/Moscow"
           ports:
             - containerPort: 8200
