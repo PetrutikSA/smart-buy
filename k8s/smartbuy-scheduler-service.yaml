@@ -1,0 +1,37 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: smartbuy-scheduler-service-svc
+  namespace: smartbuy
+spec:
+  type: NodePort
+  ports:
+    - port: 8200
+      targetPort: 8200
+      nodePort: 32200
+  selector:
+    app: scheduler-service
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: smartbuy-scheduler-service-deployment
+  namespace: smartbuy
+spec:
+  selector:
+    matchLabels:
+      app: scheduler-service
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: scheduler-service
+    spec:
+      containers:
+        - name: scheduler-service
+          image: petrutiksa/smart-buy-scheduler-service
+          env:
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              value: "kafka-0.kafka-svc.kafka.svc.cluster.local:9090,kafka-1.kafka-svc.kafka.svc.cluster.local:9090"
+          ports:
+            - containerPort: 8200
